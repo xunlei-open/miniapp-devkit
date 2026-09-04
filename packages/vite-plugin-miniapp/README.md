@@ -15,7 +15,7 @@ export default defineConfig({
 })
 ```
 
-默认读取 `src/events/*.{ts,js}` 和根目录的 `manifest.json`。构建后事件位于 `dist/events`，manifest 及其 `icon` 文件会复制到 `dist`。
+插件默认读取根目录的 `manifest.json`，并将 manifest 及其 `icon` 文件复制到 `dist`。项目不需要创建事件目录；如果存在 `src/events/*.{ts,js}`，插件会自动把它们构建到 `dist/events`。
 
 ```ts
 miniapp({

@@ -2,7 +2,7 @@
 
 迅雷开放平台前端脚手架 CLI（自研命令行 + EJS 模板引擎）。
 
-- 完整开发指南：[PLUGIN-DEV-GUIDE.md](./PLUGIN-DEV-GUIDE.md)
+- 微应用开发说明见[仓库 README](https://github.com/xunlei-open/miniapp-devkit#readme)，完整能力以[官方开发文档](https://open.xunlei.com/doc/miniapp/introduction)为准。
 
 ## 环境要求
 
@@ -22,6 +22,8 @@
 **Lint** = ESLint + Prettier + `eslint-plugin-prettier`（规则 `prettier/prettier: error`）。编辑时红线依赖本机 ESLint 扩展读取项目配置，无需 `.vscode` 工作区文件。
 
 **Biome** = `@biomejs/biome` 一体 lint + format，生成 `biome.json` 与 `.vscode/settings.json`。Vue 模板对 `.vue` SFC 支持为实验性，交互选项标注 `(Experimental)`。
+
+生成的项目默认是纯页面微应用，不包含 `src/events` 或 manifest `scripts`。需要介入下载任务生命周期时，可按照根目录 README 的“可选：添加 events”章节手动添加。
 
 ## 使用
 
@@ -73,7 +75,6 @@ templates/
   vue-ts/
   react/
   react-ts/
-PLUGIN-DEV-GUIDE.md  # 完整插件开发指南
 ```
 
 ## 发布

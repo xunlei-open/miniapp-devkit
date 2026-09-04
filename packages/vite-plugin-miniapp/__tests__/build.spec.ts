@@ -51,14 +51,16 @@ test('builds event entries and copies manifest assets', async () => {
   })
 })
 
-test('reports a missing events directory', async () => {
+test('builds a page-only miniapp without an events directory', async () => {
   const root = await mkdtemp(join(tmpdir(), 'vite-plugin-miniapp-'))
   temporaryDirectories.push(root)
 
   await writeFile(join(root, 'index.html'), '<!doctype html>')
   await writeFile(join(root, 'manifest.json'), '{}')
 
-  await expect(
-    build({ root, logLevel: 'silent', plugins: [miniapp()] }),
-  ).rejects.toThrow('[vite-plugin-miniapp] events dir not found')
+  await build({ root, logLevel: 'silent', plugins: [miniapp()] })
+
+  expect(existsSync(join(root, 'dist/index.html'))).toBe(true)
+  expect(existsSync(join(root, 'dist/manifest.json'))).toBe(true)
+  expect(existsSync(join(root, 'dist/events'))).toBe(false)
 })

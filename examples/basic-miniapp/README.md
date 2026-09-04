@@ -3,8 +3,7 @@
 这个示例直接引用 monorepo 内的类型包和 Vite 插件，展示：
 
 - 使用 `xunlei.tasks.create` 创建下载任务；
-- 使用类型安全的 `onResolve` 生命周期事件；
-- 将页面、事件、manifest 和图标构建到同一个 `dist` 目录。
+- 将页面、manifest 和图标构建到同一个 `dist` 目录。
 
 在仓库根目录运行：
 

@@ -11,14 +11,5 @@
 	"window": {
 		"width": 900,
 		"height": 700
-	},
-	"scripts": [
-		{
-			"event": "onResolve",
-			"match": {
-				"urls": ["*://github.com/*"]
-			},
-			"entry": "events/onResolve.js"
-		}
-	]
+	}
 }

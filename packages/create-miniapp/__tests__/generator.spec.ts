@@ -120,7 +120,7 @@ afterEach(() => {
 
 for (const framework of ["vanilla", "vue", "react"] as const) {
 	for (const variant of ["javascript", "typescript"] as const) {
-		test(`scaffolds ${framework}-${variant} with core files`, async () => {
+			test(`scaffolds ${framework}-${variant} with core files`, async () => {
 			const targetDir = await generateProject(
 				baseOptions({ framework, variant }),
 			);
@@ -136,6 +136,8 @@ for (const framework of ["vanilla", "vue", "react"] as const) {
 				type: "miniapp",
 				url: "index.html",
 			});
+			expect(manifest.scripts).toBeUndefined();
+			expect(fs.existsSync(path.join(targetDir, "src/events"))).toBe(false);
 		});
 	}
 }

@@ -9,8 +9,7 @@
   "files": [
     "dist",
     "templates",
-    "README.md",
-    "PLUGIN-DEV-GUIDE.md"
+    "README.md"
   ],
   "scripts": {
     "dev": "tsx src/index.ts",

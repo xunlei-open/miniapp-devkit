@@ -18,7 +18,7 @@ export interface MiniappOptions {
 
 function getEventEntries(eventsDir: string, extensions: readonly string[]) {
 	if (!existsSync(eventsDir)) {
-		throw new Error(`[vite-plugin-miniapp] events dir not found: ${eventsDir}`)
+		return {}
 	}
 
 	return Object.fromEntries(
