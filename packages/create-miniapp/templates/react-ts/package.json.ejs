@@ -1,0 +1,50 @@
+{
+  "name": "<%= packageName %>",
+  "private": true,
+  "version": "0.0.0",<% if (packageManager === 'pnpm') { %>
+  "packageManager": "<%= pnpmPackageManager %>",<% } %>
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "build:watch": "vite build --sourcemap && concurrently -k \"vite build --watch --sourcemap\" \"vite preview\"",
+    "preview": "vite preview"<% if (features.includes('vitest')) { %>,
+    "test": "vitest run",
+    "test:watch": "vitest"<% } %><% if (features.includes('lint')) { %>,
+    "lint": "eslint .",
+    "format": "prettier --write ."<% } %><% if (features.includes('biome')) { %>,
+    "lint": "biome check .",
+    "format": "biome format --write ."<% } %>
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "@vitejs/plugin-react": "^5.2.0",
+    "typescript": "~6.0.2",
+    "@xunlei-open/miniapp-types": "^0.1.0",
+    "@xunlei-open/vite-plugin-miniapp": "^0.1.0",
+    "vite": "^8.0.12",
+    "concurrently": "^9.1.2"<% if (features.includes('vitest')) { %>,
+    "@testing-library/react": "^16.2.0",
+    "jsdom": "^29.0.0",
+    "vitest": "^4.1.0"<% } %><% if (features.includes('lint')) { %>,
+    "@eslint/js": "^9.22.0",
+    "eslint": "^9.22.0",
+    "eslint-config-prettier": "^10.1.1",
+    "eslint-plugin-prettier": "^5.4.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.19",
+    "globals": "^16.0.0",
+    "prettier": "^3.5.3",
+    "typescript-eslint": "^8.26.1"<% } %><% if (features.includes('biome')) { %>,
+    "@biomejs/biome": "2.4.16"<% } %>
+  }
+}

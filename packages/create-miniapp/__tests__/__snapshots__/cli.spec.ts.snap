@@ -1,0 +1,21 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`matches help snapshot 1`] = `
+"Usage: @xunlei-open/create-miniapp [options] [project-name]
+
+Xunlei Open Platform plugin scaffold
+
+Arguments:
+  project-name             project name
+
+Options:
+  -V, --version            output the version number
+  --framework <framework>  vanilla | vue | react
+  --variant <variant>      typescript | javascript
+  --features <features>    comma-separated: lint,biome,vitest (lint and biome
+                           are mutually exclusive; eslint/prettier alias lint)
+  --package-manager <pm>   npm | yarn | pnpm
+  --no-install             skip dependency installation
+  -y, --yes                use defaults and skip prompts
+  -h, --help               display help for command"
+`;

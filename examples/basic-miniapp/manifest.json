@@ -1,0 +1,26 @@
+{
+  "manifest_version": 1,
+  "name": "basic-miniapp",
+  "title": "基础微应用示例",
+  "description": "展示微应用页面、任务 API 和 onResolve 生命周期事件",
+  "version": "0.1.0",
+  "icon": "icon.png",
+  "entry": {
+    "type": "miniapp",
+    "url": "index.html"
+  },
+  "window": {
+    "width": 720,
+    "height": 560
+  },
+  "permissions": ["tasks.create", "tasks.list", "tasks.detail"],
+  "scripts": [
+    {
+      "event": "onResolve",
+      "match": {
+        "urls": ["*://github.com/*"]
+      },
+      "entry": "events/onResolve.js"
+    }
+  ]
+}

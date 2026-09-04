@@ -1,0 +1,16 @@
+<script setup lang="ts">
+import { ref } from 'vue'
+
+const count = ref(0)
+</script>
+
+<template>
+  <div class="app">
+    <main class="app-main">
+      <h1><%= projectName %></h1>
+      <p>迅雷开放平台脚手架：Vanilla / Vue / React Vite 项目生成器</p>
+      <p>计数: {{ count }}</p>
+      <button type="button" class="app-button" @click="count++">+1</button>
+    </main>
+  </div>
+</template>

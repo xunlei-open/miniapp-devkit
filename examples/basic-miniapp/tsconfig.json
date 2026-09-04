@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "declaration": false,
+    "declarationMap": false,
+    "types": ["vite/client"]
+  },
+  "include": [
+    "src/**/*.ts",
+    "vite.config.ts",
+    "../../packages/miniapp-types/src/index.ts"
+  ]
+}

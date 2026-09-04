@@ -1,0 +1,61 @@
+{
+  "name": "@xunlei-open/create-miniapp",
+  "version": "0.1.0",
+  "description": "Create a Xunlei Miniapp with Vanilla, Vue, or React",
+  "type": "module",
+  "bin": {
+    "create-miniapp": "./dist/index.mjs"
+  },
+  "files": [
+    "dist",
+    "templates",
+    "README.md",
+    "PLUGIN-DEV-GUIDE.md"
+  ],
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "tsdown",
+    "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
+    "check": "tsc --noEmit",
+    "test": "vitest run __tests__",
+    "prepublishOnly": "pnpm build"
+  },
+  "keywords": [
+    "xunlei",
+    "miniapp",
+    "scaffold",
+    "vite",
+    "create-miniapp"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xunlei-open/miniapp-devkit.git",
+    "directory": "packages/create-miniapp"
+  },
+  "bugs": {
+    "url": "https://github.com/xunlei-open/miniapp-devkit/issues"
+  },
+  "homepage": "https://github.com/xunlei-open/miniapp-devkit#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "dependencies": {
+    "@inquirer/prompts": "^7.4.0",
+    "commander": "^13.1.0",
+    "ejs": "^3.1.10",
+    "execa": "^9.5.2",
+    "fs-extra": "^11.3.0",
+    "kolorist": "^1.8.0",
+    "validate-npm-package-name": "^6.0.0"
+  },
+  "devDependencies": {
+    "@types/ejs": "^3.1.5",
+    "@types/fs-extra": "^11.0.4",
+    "@types/validate-npm-package-name": "^4.0.2",
+    "tsx": "^4.20.0"
+  }
+}

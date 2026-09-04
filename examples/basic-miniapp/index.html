@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>基础微应用示例</title>
+    <script type="module" src="/src/main.ts"></script>
+  </head>
+  <body>
+    <main>
+      <p class="eyebrow">Xunlei Miniapp Devkit</p>
+      <h1>基础微应用示例</h1>
+      <p class="intro">输入一个下载地址，体验类型安全的任务 API 和生命周期事件构建。</p>
+
+      <form id="task-form">
+        <label for="task-url">下载地址</label>
+        <div class="row">
+          <input id="task-url" type="url" value="https://example.com/file.zip" required />
+          <button type="submit">创建任务</button>
+        </div>
+      </form>
+
+      <output id="result">等待操作</output>
+    </main>
+  </body>
+</html>

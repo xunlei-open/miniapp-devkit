@@ -1,0 +1,42 @@
+{
+  "name": "<%= packageName %>",
+  "private": true,
+  "version": "0.0.0",<% if (packageManager === 'pnpm') { %>
+  "packageManager": "<%= pnpmPackageManager %>",<% } %>
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "build:watch": "vite build --sourcemap && concurrently -k \"vite build --watch --sourcemap\" \"vite preview\"",
+    "preview": "vite preview"<% if (features.includes('vitest')) { %>,
+    "test": "vitest run",
+    "test:watch": "vitest"<% } %><% if (features.includes('lint')) { %>,
+    "lint": "eslint .",
+    "format": "prettier --write ."<% } %><% if (features.includes('biome')) { %>,
+    "lint": "biome check .",
+    "format": "biome format --write ."<% } %>
+  },
+  "dependencies": {
+    "vue": "^3.5.13"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.6",
+    "@xunlei-open/vite-plugin-miniapp": "^0.1.0",
+    "vite": "^8.0.12",
+    "concurrently": "^9.1.2"<% if (features.includes('vitest')) { %>,
+    "@vue/test-utils": "^2.4.6",
+    "jsdom": "^29.0.0",
+    "vitest": "^4.1.0"<% } %><% if (features.includes('lint')) { %>,
+    "@eslint/js": "^9.22.0",
+    "eslint": "^9.22.0",
+    "eslint-config-prettier": "^10.1.1",
+    "eslint-plugin-prettier": "^5.4.0",
+    "eslint-plugin-vue": "^10.0.0",
+    "globals": "^16.0.0",
+    "prettier": "^3.5.3"<% } %><% if (features.includes('biome')) { %>,
+    "@biomejs/biome": "2.4.16"<% } %>
+  }
+}

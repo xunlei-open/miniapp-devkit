@@ -1,0 +1,55 @@
+{
+  "name": "@xunlei-open/miniapp-types",
+  "version": "0.1.0",
+  "description": "TypeScript definitions for the Xunlei Miniapp manifest and runtime APIs",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
+    "check": "tsc --noEmit",
+    "prepublishOnly": "pnpm build"
+  },
+  "keywords": [
+    "xunlei",
+    "miniapp",
+    "types",
+    "typescript"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xunlei-open/miniapp-devkit.git",
+    "directory": "packages/miniapp-types"
+  },
+  "bugs": {
+    "url": "https://github.com/xunlei-open/miniapp-devkit/issues"
+  },
+  "homepage": "https://github.com/xunlei-open/miniapp-devkit#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  }
+}
