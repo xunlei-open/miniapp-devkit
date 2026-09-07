@@ -8,10 +8,9 @@
   },
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "build:watch": "vite build --sourcemap && concurrently -k \"vite build --watch --sourcemap\" \"vite preview\"",
-    "preview": "vite preview"<% if (features.includes('vitest')) { %>,
+    "dev": "xunlei-miniapp",
+    "build": "xunlei-miniapp build",
+    "package": "xunlei-miniapp package"<% if (features.includes('vitest')) { %>,
     "test": "vitest run",
     "test:watch": "vitest"<% } %><% if (features.includes('lint')) { %>,
     "lint": "eslint .",
@@ -20,9 +19,8 @@
     "format": "biome format --write ."<% } %>
   },
   "devDependencies": {
-    "@xunlei-open/vite-plugin-miniapp": "^0.1.0",
-    "vite": "^8.0.12",
-    "concurrently": "^9.1.2"<% if (features.includes('vitest')) { %>,
+    "@xunlei-open/miniapp": "^<%= devkitVersion %>",
+    "vite": "^8.0.12"<% if (features.includes('vitest')) { %>,
     "jsdom": "^29.0.0",
     "vitest": "^4.1.0"<% } %><% if (features.includes('lint')) { %>,
     "@eslint/js": "^9.22.0",

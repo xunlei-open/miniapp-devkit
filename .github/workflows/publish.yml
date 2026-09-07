@@ -1,0 +1,120 @@
+name: Publish packages
+
+on:
+  release:
+    types: [published]
+
+permissions: {}
+
+concurrency:
+  group: npm-publish
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    if: github.event.release.prerelease == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    outputs:
+      mode: ${{ steps.plan.outputs.mode }}
+      pack-dir-artifact-id: ${{ steps.pack.outputs.pack-dir-artifact-id }}
+
+    steps:
+      - name: Check out release
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate release tag and source commit
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          git merge-base --is-ancestor HEAD origin/main
+
+          version="$(node -p "require('./packages/miniapp/package.json').version")"
+          test "$RELEASE_TAG" = "v$version"
+
+          for manifest in \
+            packages/create-miniapp/package.json \
+            packages/miniapp-types/package.json \
+            packages/vite-plugin-miniapp/package.json
+          do
+            package_version="$(node -p "require('./$manifest').version")"
+            test "$package_version" = "$version"
+          done
+
+      - name: Verify packages
+        run: pnpm verify
+
+      - name: Resolve publish plan
+        id: plan
+        uses: changesets/action/select-mode@v2
+
+      - name: Reject unversioned changesets
+        if: steps.plan.outputs.mode == 'version'
+        run: |
+          echo "Release tag contains changesets that have not been versioned."
+          exit 1
+
+      - name: Pack publishable packages
+        if: steps.plan.outputs.mode == 'publish'
+        id: pack
+        uses: changesets/action/pack@v2
+        with:
+          publish-plan-artifact-id: ${{ steps.plan.outputs.publish-plan-artifact-id }}
+
+  publish:
+    needs: prepare
+    if: needs.prepare.outputs.mode == 'publish'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Check out release
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          persist-credentials: false
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - name: Install publishing tools
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Publish to npm with OIDC
+        uses: changesets/action/publish@v2
+        with:
+          pack-dir-artifact-id: ${{ needs.prepare.outputs.pack-dir-artifact-id }}
+          create-github-releases: false
+          push-git-tags: false

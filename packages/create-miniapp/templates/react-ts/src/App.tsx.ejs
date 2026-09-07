@@ -1,21 +1,52 @@
-import { useState } from 'react'
+import { useState, type FormEvent } from 'react'
 
 export default function App() {
-  const [count, setCount] = useState(0)
+  const [url, setUrl] = useState('https://example.com/file.zip')
+  const [result, setResult] = useState('等待创建任务')
+  const [submitting, setSubmitting] = useState(false)
+
+  async function createTask(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    if (typeof xunlei === 'undefined') {
+      setResult('当前是普通浏览器预览，请在迅雷微应用宿主中创建任务。')
+      return
+    }
+
+    setSubmitting(true)
+    setResult('正在创建任务…')
+
+    try {
+      const task = await xunlei.tasks.create({
+        req: { url },
+        opts: { name: '<%= projectName %>' },
+      })
+      setResult(`任务已创建：${task.id}`)
+    } catch (error) {
+      setResult(error instanceof Error ? error.message : String(error))
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   return (
     <div className="app">
-      <main className="app-main">
+      <main>
+        <p className="eyebrow">Xunlei Miniapp</p>
         <h1><%= projectName %></h1>
-        <p>迅雷开放平台脚手架：Vanilla / Vue / React Vite 项目生成器</p>
-        <p>计数: {count}</p>
-        <button
-          type="button"
-          className="app-button"
-          onClick={() => setCount((c) => c + 1)}
-        >
-          +1
-        </button>
+        <p className="intro">输入下载地址，通过迅雷微应用 API 创建下载任务。</p>
+
+        <form onSubmit={createTask}>
+          <label htmlFor="task-url">下载地址</label>
+          <div className="row">
+            <input id="task-url" type="url" value={url} onChange={(event) => setUrl(event.target.value)} required />
+            <button type="submit" disabled={submitting}>
+              {submitting ? '正在创建…' : '创建任务'}
+            </button>
+          </div>
+        </form>
+
+        <output>{result}</output>
       </main>
     </div>
   )

@@ -2,6 +2,8 @@
 
 将微应用页面和生命周期事件构建为宿主可安装的 `dist` 目录。
 
+普通微应用项目建议直接使用 `@xunlei-open/miniapp` 统一运行开发、构建和打包命令。本包是底层 Vite 集成层，适合开发工具内部使用或需要直接控制 Vite 的高级场景。
+
 ```bash
 pnpm add -D @xunlei-open/vite-plugin-miniapp vite
 ```

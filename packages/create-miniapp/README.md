@@ -12,9 +12,9 @@
 
 | Framework | Variant | 模板 ID | 包含 |
 |-----------|---------|---------|------|
-| Vanilla | TypeScript | `vanilla-ts` | Vite 8、TypeScript；可选 Lint / Biome / Vitest |
-| Vanilla | JavaScript | `vanilla` | Vite 8；可选 Lint / Biome / Vitest |
-| Vue | TypeScript | `vue-ts` | Vite 8、Vue 3；可选 Lint / Biome（Experimental）/ Vitest |
+| Vanilla | TypeScript | `vanilla-ts` | 迅雷微应用 CLI、Vite 8、TypeScript；可选 Lint / Biome / Vitest |
+| Vanilla | JavaScript | `vanilla` | 迅雷微应用 CLI、Vite 8；可选 Lint / Biome / Vitest |
+| Vue | TypeScript | `vue-ts` | 迅雷微应用 CLI、Vite 8、Vue 3；可选 Lint / Biome（Experimental）/ Vitest |
 | Vue | JavaScript | `vue` | 同上（JavaScript） |
 | React | TypeScript | `react-ts` | Vite 8、React 19；可选 Lint / Biome / Vitest |
 | React | JavaScript | `react` | 同上（JavaScript） |
@@ -23,7 +23,15 @@
 
 **Biome** = `@biomejs/biome` 一体 lint + format，生成 `biome.json` 与 `.vscode/settings.json`。Vue 模板对 `.vue` SFC 支持为实验性，交互选项标注 `(Experimental)`。
 
-生成的项目默认是纯页面微应用，不包含 `src/events` 或 manifest `scripts`。需要介入下载任务生命周期时，可按照根目录 README 的“可选：添加 events”章节手动添加。
+生成的项目默认包含一个调用 `xunlei.tasks.create` 创建下载任务的页面示例，并声明最小权限 `tasks.create`；不包含 `src/events` 或 manifest `scripts`。需要介入下载任务生命周期时，可按照根目录 README 的“可选：让微应用响应下载事件”章节手动添加。
+
+模板使用 `miniapp.config.ts`（JavaScript 模板为 `.js`）作为唯一工具配置，并在其中通过 `vite` 字段使用 Vue、React、alias 等 Vite 能力。常用命令为：
+
+```bash
+pnpm dev       # xunlei-miniapp
+pnpm build     # xunlei-miniapp build
+pnpm run package # 构建、校验并生成 ZIP
+```
 
 ## 使用
 

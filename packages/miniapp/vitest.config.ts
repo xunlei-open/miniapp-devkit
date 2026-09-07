@@ -1,0 +1,12 @@
+import { fileURLToPath, URL } from 'node:url'
+import { defineConfig } from 'vitest/config'
+
+export default defineConfig({
+  resolve: {
+    alias: {
+      '@xunlei-open/vite-plugin-miniapp': fileURLToPath(
+        new URL('../vite-plugin-miniapp/src/index.ts', import.meta.url),
+      ),
+    },
+  },
+})

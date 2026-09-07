@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import ejs from "ejs";
 import fs from "fs-extra";
 import { green, red } from "kolorist";
+import packageJson from "../package.json";
 import type { CreateOptions, TemplateContext } from "./types.js";
 import {
 	hasFeature,
@@ -144,6 +145,7 @@ export async function generateProject(options: CreateOptions): Promise<string> {
 		features: options.features,
 		packageManager: options.packageManager,
 		pnpmPackageManager: PNPM_PACKAGE_MANAGER,
+		devkitVersion: packageJson.version,
 		isTypeScript: options.variant === "typescript",
 	};
 

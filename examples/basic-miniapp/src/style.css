@@ -5,6 +5,10 @@
   font-synthesis: none;
 }
 
+* {
+  box-sizing: border-box;
+}
+
 body {
   min-width: 320px;
   min-height: 100vh;
@@ -14,7 +18,7 @@ body {
 }
 
 main {
-  width: min(680px, calc(100% - 48px));
+  width: min(680px, calc(100vw - 48px));
   padding: 40px;
   border: 1px solid #d5def2;
   border-radius: 20px;
@@ -69,9 +73,14 @@ input {
 button {
   padding: 0 18px;
   border: 0;
-  color: white;
+  color: #fff;
   background: #176bff;
   cursor: pointer;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.65;
 }
 
 output {

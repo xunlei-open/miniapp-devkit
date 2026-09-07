@@ -4,6 +4,7 @@
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "paths": {
+      "@xunlei-open/miniapp": ["./packages/miniapp/src/index.ts"],
       "@xunlei-open/miniapp-types": ["./packages/miniapp-types/src/index.ts"],
       "@xunlei-open/vite-plugin-miniapp": ["./packages/vite-plugin-miniapp/src/index.ts"]
     },

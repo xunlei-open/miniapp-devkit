@@ -1,0 +1,74 @@
+import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { afterEach, expect, test } from 'vitest'
+import { loadMiniappConfig } from '../src/config.js'
+
+const directories: string[] = []
+
+afterEach(async () => {
+  await Promise.all(
+    directories.splice(0).map((directory) =>
+      rm(directory, { recursive: true, force: true }),
+    ),
+  )
+})
+
+async function createRoot(): Promise<string> {
+  const root = await mkdtemp(join(tmpdir(), 'miniapp-config-'))
+  directories.push(root)
+  return root
+}
+
+test('loads miniapp config and resolves its nested Vite config', async () => {
+  const root = await createRoot()
+  await writeFile(
+    join(root, 'miniapp.config.ts'),
+    `export default {
+      manifest: 'app.json',
+      events: { dir: 'events', extensions: ['.mts'] },
+      package: { outDir: 'artifacts', fileName: 'app.zip' },
+      vite: ({ mode }) => ({ define: { __MODE__: JSON.stringify(mode) } }),
+    }`,
+  )
+
+  const config = await loadMiniappConfig(root, {
+    command: 'build',
+    mode: 'testing',
+    isSsrBuild: false,
+    isPreview: false,
+  })
+
+  expect(config.manifestFile).toBe('app.json')
+  expect(config.eventsDir).toBe('events')
+  expect(config.eventsExtensions).toEqual(['.mts'])
+  expect(config.packageOutDir).toBe('artifacts')
+  expect(config.packageFileName).toBe('app.zip')
+  expect(config.vite.define).toEqual({ __MODE__: JSON.stringify('testing') })
+})
+
+test('requires exactly one miniapp config file', async () => {
+  const missingRoot = await createRoot()
+  await expect(
+    loadMiniappConfig(missingRoot, {
+      command: 'serve',
+      mode: 'development',
+      isSsrBuild: false,
+      isPreview: false,
+    }),
+  ).rejects.toThrow('No miniapp.config file found')
+
+  const duplicateRoot = await createRoot()
+  await Promise.all([
+    writeFile(join(duplicateRoot, 'miniapp.config.ts'), 'export default {}'),
+    writeFile(join(duplicateRoot, 'miniapp.config.js'), 'export default {}'),
+  ])
+  await expect(
+    loadMiniappConfig(duplicateRoot, {
+      command: 'serve',
+      mode: 'development',
+      isSsrBuild: false,
+      isPreview: false,
+    }),
+  ).rejects.toThrow('Multiple miniapp config files found')
+})

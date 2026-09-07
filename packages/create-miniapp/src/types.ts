@@ -23,5 +23,6 @@ export interface TemplateContext {
 	features: Feature[];
 	packageManager: PackageManager;
 	pnpmPackageManager: string;
+	devkitVersion: string;
 	isTypeScript: boolean;
 }

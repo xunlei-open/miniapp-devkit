@@ -1,5 +1,5 @@
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync } from 'node:fs'
-import { dirname, resolve } from 'node:path'
+import { dirname, isAbsolute, relative, resolve, sep, win32 } from 'node:path'
 import type { Plugin, UserConfig } from 'vite'
 
 const DEFAULT_EVENT_EXTENSIONS = ['.ts', '.js'] as const
@@ -44,8 +44,20 @@ function resolveExistingInput(config: UserConfig) {
 }
 
 function copyRelativeFile(projectRoot: string, outDir: string, relativePath: string) {
-	const normalized = relativePath.replace(/^\.?\//, '')
+	const normalized = relativePath.replace(/^\.[\\/]/, '')
+	if (isAbsolute(normalized) || win32.isAbsolute(normalized)) {
+		console.warn(`[vite-plugin-miniapp] static asset must use a relative path: ${relativePath}`)
+		return
+	}
 	const src = resolve(projectRoot, normalized)
+	const projectRelativePath = relative(projectRoot, src)
+	if (
+		projectRelativePath === '..' ||
+		projectRelativePath.startsWith(`..${sep}`)
+	) {
+		console.warn(`[vite-plugin-miniapp] static asset is outside project root: ${relativePath}`)
+		return
+	}
 	if (!existsSync(src)) {
 		console.warn(`[vite-plugin-miniapp] static asset not found: ${normalized}`)
 		return

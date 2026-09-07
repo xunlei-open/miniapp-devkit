@@ -2,6 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, expect, test } from "vitest";
+import createMiniappPackage from "../package.json";
 import { generateProject } from "../src/generator";
 import type { CreateOptions, Framework, Variant } from "../src/types";
 
@@ -17,20 +18,20 @@ const CORE_FILES: Record<Framework, Record<Variant, string[]>> = {
 			"index.html",
 			"jsconfig.json",
 			"manifest.json",
+			"miniapp.config.js",
 			"package.json",
 			"public",
 			"src",
-			"vite.config.js",
 		],
 		typescript: [
 			".gitignore",
 			"index.html",
 			"manifest.json",
+			"miniapp.config.ts",
 			"package.json",
 			"public",
 			"src",
 			"tsconfig.json",
-			"vite.config.ts",
 		],
 	},
 	vue: {
@@ -39,22 +40,22 @@ const CORE_FILES: Record<Framework, Record<Variant, string[]>> = {
 			"index.html",
 			"jsconfig.json",
 			"manifest.json",
+			"miniapp.config.js",
 			"package.json",
 			"public",
 			"src",
-			"vite.config.js",
 		],
 		typescript: [
 			".gitignore",
 			"index.html",
 			"manifest.json",
+			"miniapp.config.ts",
 			"package.json",
 			"public",
 			"src",
 			"tsconfig.app.json",
 			"tsconfig.json",
 			"tsconfig.node.json",
-			"vite.config.ts",
 		],
 	},
 	react: {
@@ -63,22 +64,22 @@ const CORE_FILES: Record<Framework, Record<Variant, string[]>> = {
 			"index.html",
 			"jsconfig.json",
 			"manifest.json",
+			"miniapp.config.js",
 			"package.json",
 			"public",
 			"src",
-			"vite.config.js",
 		],
 		typescript: [
 			".gitignore",
 			"index.html",
 			"manifest.json",
+			"miniapp.config.ts",
 			"package.json",
 			"public",
 			"src",
 			"tsconfig.app.json",
 			"tsconfig.json",
 			"tsconfig.node.json",
-			"vite.config.ts",
 		],
 	},
 };
@@ -136,8 +137,57 @@ for (const framework of ["vanilla", "vue", "react"] as const) {
 				type: "miniapp",
 				url: "index.html",
 			});
+			expect(manifest.permissions).toEqual(["tasks.create"]);
 			expect(manifest.scripts).toBeUndefined();
 			expect(fs.existsSync(path.join(targetDir, "src/events"))).toBe(false);
+
+			const appEntry =
+				framework === "vanilla"
+					? variant === "typescript"
+						? "src/main.ts"
+						: "src/main.js"
+					: framework === "vue"
+						? "src/App.vue"
+						: variant === "typescript"
+							? "src/App.tsx"
+							: "src/App.jsx";
+			const appSource = fs.readFileSync(
+				path.join(targetDir, appEntry),
+				"utf-8",
+			);
+			expect(appSource).toContain("xunlei.tasks.create");
+			expect(appSource).not.toContain("counter");
+			const pkg = JSON.parse(
+				fs.readFileSync(path.join(targetDir, "package.json"), "utf-8"),
+			) as {
+				scripts: Record<string, string>;
+				devDependencies: Record<string, string>;
+			};
+			expect(pkg.scripts.dev).toBe("xunlei-miniapp");
+			expect(pkg.scripts.package).toBe("xunlei-miniapp package");
+			expect(pkg.devDependencies["@xunlei-open/miniapp"]).toBe(
+				`^${createMiniappPackage.version}`,
+			);
+			expect(
+				pkg.devDependencies["@xunlei-open/vite-plugin-miniapp"],
+			).toBeUndefined();
+
+			const configFile =
+				variant === "typescript" ? "miniapp.config.ts" : "miniapp.config.js";
+			expect(
+				fs.readFileSync(path.join(targetDir, configFile), "utf-8"),
+			).toContain("defineConfig");
+			expect(
+				fs.existsSync(path.join(targetDir, configFile)),
+			).toBe(true);
+			expect(
+				fs.existsSync(
+					path.join(
+						targetDir,
+						variant === "typescript" ? "vite.config.ts" : "vite.config.js",
+					),
+				),
+			).toBe(false);
 		});
 	}
 }
@@ -155,9 +205,19 @@ test("renders package.json with package name", async () => {
 			path.join(projectPath(options.projectName), "package.json"),
 			"utf-8",
 		),
-	) as { name: string };
+	) as {
+		name: string;
+		scripts: Record<string, string>;
+		devDependencies: Record<string, string>;
+	};
 
 	expect(pkg.name).toBe("my-vue-plugin");
+	expect(pkg.scripts.dev).toBe("xunlei-miniapp");
+	expect(pkg.scripts.package).toBe("xunlei-miniapp package");
+	expect(pkg.devDependencies["@xunlei-open/miniapp"]).toBe(
+		`^${createMiniappPackage.version}`,
+	);
+	expect(pkg.devDependencies["@xunlei-open/vite-plugin-miniapp"]).toBeUndefined();
 });
 
 test("omits vitest files when feature is not selected", async () => {

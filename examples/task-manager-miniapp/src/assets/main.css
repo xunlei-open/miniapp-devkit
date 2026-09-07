@@ -1,0 +1,320 @@
+:root {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #172033;
+  background: #f2f5fb;
+  font-synthesis: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.app-shell {
+  width: min(1040px, calc(100vw - 40px));
+  margin: 0 auto;
+  padding: 40px 0 64px;
+}
+
+.hero,
+.section-heading,
+.task-heading,
+.task-title,
+.task-meta,
+.file-actions {
+  display: flex;
+  align-items: center;
+}
+
+.hero,
+.section-heading,
+.task-heading {
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.eyebrow,
+.section-kicker {
+  margin: 0;
+  color: #176bff;
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 8px;
+  font-size: clamp(28px, 4vw, 42px);
+}
+
+h2 {
+  margin: 4px 0 0;
+  font-size: 19px;
+}
+
+.intro,
+.hint,
+.message,
+.task-meta {
+  color: #66728a;
+}
+
+.intro {
+  margin-bottom: 0;
+}
+
+.panel {
+  margin-top: 22px;
+  padding: 24px;
+  border: 1px solid #dce3f1;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 16px 42px rgb(33 58 109 / 8%);
+}
+
+label {
+  display: block;
+  margin-bottom: 9px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+input {
+  min-width: 0;
+  height: 46px;
+  padding: 0 14px;
+  border: 1px solid #bdc8dd;
+  border-radius: 10px;
+  color: #172033;
+  background: #fff;
+}
+
+input:focus {
+  border-color: #176bff;
+  outline: 3px solid rgb(23 107 255 / 12%);
+}
+
+.primary-button,
+.secondary-button,
+.danger-button,
+.video-button,
+.text-button {
+  min-height: 40px;
+  border-radius: 10px;
+  font-weight: 650;
+}
+
+.primary-button {
+  padding: 0 20px;
+  border: 0;
+  color: #fff;
+  background: #176bff;
+}
+
+.secondary-button,
+.video-button {
+  padding: 0 14px;
+  border: 1px solid #cbd5e8;
+  color: #24508f;
+  background: #f7f9fd;
+}
+
+.danger-button,
+.text-button {
+  border: 0;
+  background: transparent;
+}
+
+.danger-button {
+  min-height: 34px;
+  padding: 0 8px;
+  color: #c43b46;
+}
+
+.text-button {
+  padding: 0 6px;
+  color: #52627e;
+}
+
+.message {
+  margin: 14px 0 0;
+  font-size: 14px;
+}
+
+.player-panel video {
+  display: block;
+  width: 100%;
+  max-height: 520px;
+  margin-top: 18px;
+  border-radius: 12px;
+  background: #0d111b;
+}
+
+.player-panel .hint {
+  margin: 12px 0 0;
+}
+
+.hint {
+  font-size: 13px;
+}
+
+code {
+  padding: 2px 5px;
+  border-radius: 5px;
+  background: #eef2f8;
+}
+
+.empty-state {
+  padding: 48px 16px 28px;
+  color: #7b879d;
+  text-align: center;
+}
+
+.task-list {
+  display: grid;
+  gap: 12px;
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.task-card {
+  padding: 18px;
+  border: 1px solid #e0e6f1;
+  border-radius: 13px;
+  background: #fbfcfe;
+}
+
+.task-title {
+  min-width: 0;
+  gap: 9px;
+}
+
+.task-title strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status {
+  flex: 0 0 auto;
+  padding: 3px 8px;
+  border-radius: 999px;
+  color: #52627e;
+  background: #e9eef7;
+  font-size: 11px;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.status-running {
+  color: #0b67bd;
+  background: #dceeff;
+}
+
+.status-done {
+  color: #19714a;
+  background: #daf5e8;
+}
+
+.status-error {
+  color: #aa2e3a;
+  background: #ffe1e4;
+}
+
+.progress-track {
+  height: 7px;
+  margin-top: 16px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e6ebf4;
+}
+
+.progress-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #176bff, #7c55ff);
+  transition: width 220ms ease;
+}
+
+.task-meta {
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-top: 9px;
+  font-size: 12px;
+}
+
+.file-actions {
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.video-button {
+  min-height: 34px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .app-shell {
+    width: min(100% - 24px, 1040px);
+    padding-top: 24px;
+  }
+
+  .hero,
+  .section-heading,
+  .task-heading {
+    align-items: flex-start;
+  }
+
+  .hero,
+  .form-row {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .hero button,
+  .form-row button,
+  .form-row input {
+    width: 100%;
+  }
+
+  .panel {
+    padding: 18px;
+  }
+}

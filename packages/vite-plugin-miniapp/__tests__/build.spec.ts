@@ -2,13 +2,14 @@ import { existsSync } from 'node:fs'
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { afterEach, expect, test } from 'vitest'
+import { afterEach, expect, test, vi } from 'vitest'
 import { build } from 'vite'
 import miniapp from '../src/index'
 
 const temporaryDirectories: string[] = []
 
 afterEach(async () => {
+  vi.restoreAllMocks()
   await Promise.all(
     temporaryDirectories.splice(0).map((directory) =>
       rm(directory, { recursive: true, force: true }),
@@ -63,4 +64,33 @@ test('builds a page-only miniapp without an events directory', async () => {
   expect(existsSync(join(root, 'dist/index.html'))).toBe(true)
   expect(existsSync(join(root, 'dist/manifest.json'))).toBe(true)
   expect(existsSync(join(root, 'dist/events'))).toBe(false)
+})
+
+test('does not copy manifest assets from outside the project', async () => {
+  const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+  const parent = await mkdtemp(join(tmpdir(), 'vite-plugin-miniapp-parent-'))
+  temporaryDirectories.push(parent)
+  const root = join(parent, 'project')
+  await mkdir(root)
+  await Promise.all([
+    writeFile(join(root, 'index.html'), '<!doctype html><title>Miniapp</title>'),
+    writeFile(join(parent, 'outside.png'), 'outside'),
+    writeFile(
+      join(root, 'manifest.json'),
+      JSON.stringify({
+        name: 'test',
+        title: 'Test',
+        version: '1.0.0',
+        icon: '../outside.png',
+      }),
+    ),
+  ])
+
+  await build({ root, logLevel: 'silent', plugins: [miniapp()] })
+
+  expect(existsSync(join(root, 'outside.png'))).toBe(false)
+  expect(existsSync(join(root, 'dist/outside.png'))).toBe(false)
+  expect(warn).toHaveBeenCalledWith(
+    '[vite-plugin-miniapp] static asset is outside project root: ../outside.png',
+  )
 })

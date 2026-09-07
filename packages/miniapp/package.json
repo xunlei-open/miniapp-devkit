@@ -1,0 +1,61 @@
+{
+  "name": "@xunlei-open/miniapp",
+  "version": "0.1.0",
+  "description": "Unified development CLI for Xunlei Miniapps",
+  "type": "module",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "bin": {
+    "xunlei-miniapp": "./bin/xunlei-miniapp.mjs"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
+    }
+  },
+  "files": [
+    "bin",
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
+    "check": "tsc --noEmit",
+    "test": "vitest run",
+    "prepublishOnly": "pnpm build"
+  },
+  "keywords": [
+    "xunlei",
+    "miniapp",
+    "vite",
+    "cli"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xunlei-open/miniapp-devkit.git",
+    "directory": "packages/miniapp"
+  },
+  "bugs": {
+    "url": "https://github.com/xunlei-open/miniapp-devkit/issues"
+  },
+  "homepage": "https://github.com/xunlei-open/miniapp-devkit#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "dependencies": {
+    "@xunlei-open/miniapp-types": "workspace:^",
+    "@xunlei-open/vite-plugin-miniapp": "workspace:^",
+    "vite": "^8.2.0",
+    "yazl": "^3.3.1"
+  },
+  "devDependencies": {
+    "@types/yazl": "^3.3.1"
+  }
+}

@@ -1,16 +1,51 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
-const count = ref(0)
+const url = ref('https://example.com/file.zip')
+const result = ref('等待创建任务')
+const submitting = ref(false)
+
+async function createTask() {
+  if (typeof xunlei === 'undefined') {
+    result.value = '当前是普通浏览器预览，请在迅雷微应用宿主中创建任务。'
+    return
+  }
+
+  submitting.value = true
+  result.value = '正在创建任务…'
+
+  try {
+    const task = await xunlei.tasks.create({
+      req: { url: url.value },
+      opts: { name: '<%= projectName %>' },
+    })
+    result.value = `任务已创建：${task.id}`
+  } catch (error) {
+    result.value = error instanceof Error ? error.message : String(error)
+  } finally {
+    submitting.value = false
+  }
+}
 </script>
 
 <template>
   <div class="app">
-    <main class="app-main">
+    <main>
+      <p class="eyebrow">Xunlei Miniapp</p>
       <h1><%= projectName %></h1>
-      <p>迅雷开放平台脚手架：Vanilla / Vue / React Vite 项目生成器</p>
-      <p>计数: {{ count }}</p>
-      <button type="button" class="app-button" @click="count++">+1</button>
+      <p class="intro">输入下载地址，通过迅雷微应用 API 创建下载任务。</p>
+
+      <form @submit.prevent="createTask">
+        <label for="task-url">下载地址</label>
+        <div class="row">
+          <input id="task-url" v-model="url" type="url" required />
+          <button type="submit" :disabled="submitting">
+            {{ submitting ? '正在创建…' : '创建任务' }}
+          </button>
+        </div>
+      </form>
+
+      <output>{{ result }}</output>
     </main>
   </div>
 </template>
