@@ -1,9 +1,10 @@
-export { defineConfig, loadMiniappConfig } from './config.js'
+export { defineConfig, defineMiniappModule, loadMiniappConfig } from './config.js'
 export { packageMiniapp } from './package.js'
 export type {
   BuildMiniappOptions,
   DevMiniappOptions,
   MiniappEventsConfig,
+  MiniappModule,
   MiniappPackageConfig,
   MiniappUserConfig,
   MiniappValidationResult,

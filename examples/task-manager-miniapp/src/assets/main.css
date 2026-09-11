@@ -111,7 +111,7 @@ label {
   gap: 10px;
 }
 
-input {
+.form-row input {
   min-width: 0;
   height: 46px;
   padding: 0 14px;
@@ -121,7 +121,7 @@ input {
   background: #fff;
 }
 
-input:focus {
+.form-row input:focus {
   border-color: #176bff;
   outline: 3px solid rgb(23 107 255 / 12%);
 }
@@ -173,19 +173,6 @@ input:focus {
   font-size: 14px;
 }
 
-.player-panel video {
-  display: block;
-  width: 100%;
-  max-height: 520px;
-  margin-top: 18px;
-  border-radius: 12px;
-  background: #0d111b;
-}
-
-.player-panel .hint {
-  margin: 12px 0 0;
-}
-
 .hint {
   font-size: 13px;
 }
@@ -222,10 +209,48 @@ code {
   gap: 9px;
 }
 
+.task-identity {
+  min-width: 0;
+}
+
 .task-title strong {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.task-id {
+  display: block;
+  margin-top: 7px;
+  color: #718099;
+  background: transparent;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.delete-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.delete-files-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: #66728a;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.delete-files-option input {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: #c43b46;
 }
 
 .status {
@@ -300,6 +325,15 @@ code {
   .section-heading,
   .task-heading {
     align-items: flex-start;
+  }
+
+  .task-heading {
+    flex-direction: column;
+  }
+
+  .delete-actions {
+    width: 100%;
+    justify-content: space-between;
   }
 
   .hero,

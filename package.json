@@ -11,7 +11,6 @@
     "build": "pnpm --recursive --stream build",
     "check": "pnpm --recursive --stream --if-present check",
     "clean": "pnpm --recursive --stream --if-present clean",
-    "dev": "pnpm --filter @xunlei-open/miniapp build && pnpm --filter basic-miniapp dev",
     "changeset": "changeset",
     "test": "pnpm --recursive --stream --if-present test",
     "verify": "pnpm check && pnpm test && pnpm build"

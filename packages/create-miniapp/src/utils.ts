@@ -82,8 +82,6 @@ function pkgFromUserAgent(
 	return { name, version: version ?? "" };
 }
 
-export const PNPM_PACKAGE_MANAGER = "pnpm@10.17.1";
-
 /** Infer npm / yarn / pnpm from npx, pnpx, yarn dlx, pnpm create, etc. */
 export function detectInvokedPackageManager(): PackageManager {
 	const pkgInfo = pkgFromUserAgent(process.env.npm_config_user_agent);

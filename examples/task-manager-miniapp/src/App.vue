@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { FileInfo, TaskDetailResult } from '@xunlei-open/miniapp-types'
 import { onMounted, onUnmounted, ref } from 'vue'
+import VideoPlayer from './components/VideoPlayer.vue'
 
 const VIDEO_EXTENSIONS = new Set(['mp4', 'webm', 'ogg', 'ogv', 'm4v', 'mov'])
 const POLL_INTERVAL_MS = 1_000
@@ -11,6 +12,7 @@ const total = ref(0)
 const loading = ref(false)
 const creating = ref(false)
 const deletingId = ref<string>()
+const deleteFilesByTask = ref<Record<string, boolean>>({})
 const accessingFile = ref<string>()
 const message = ref('')
 const player = ref<{
@@ -81,7 +83,12 @@ async function createTask() {
 
 async function deleteTask(task: TaskDetailResult) {
   if (!hasXunleiRuntime()) return
-  if (!window.confirm(`确定从任务列表删除“${task.name}”吗？已下载文件会保留。`)) {
+  const deleteFiles = Boolean(deleteFilesByTask.value[task.id])
+  const confirmMessage = deleteFiles
+    ? `确定删除“${taskDisplayName(task)}”及其本地文件吗？此操作不可恢复。`
+    : `确定从任务列表删除“${taskDisplayName(task)}”吗？已下载文件会保留。`
+
+  if (!window.confirm(confirmMessage)) {
     return
   }
 
@@ -91,10 +98,15 @@ async function deleteTask(task: TaskDetailResult) {
   try {
     const result = await xunlei.tasks.delete({
       id: task.id,
-      deleteFiles: false,
+      deleteFiles,
     })
-    message.value = result.deleted ? '任务已删除，下载文件已保留。' : '任务不存在或已经删除。'
+    message.value = result.deleted
+      ? deleteFiles
+        ? '任务及其本地文件已删除。'
+        : '任务已删除，下载文件已保留。'
+      : '任务不存在或已经删除。'
     if (player.value?.taskId === task.id) player.value = undefined
+    delete deleteFilesByTask.value[task.id]
     await loadTasks({ silent: true })
   } catch (error) {
     message.value = getErrorMessage(error)
@@ -143,6 +155,10 @@ function taskProgress(task: TaskDetailResult): number {
   if (task.status === 'done') return 100
   if (task.size <= 0) return 0
   return Math.min(100, Math.round((task.progress.downloaded / task.size) * 100))
+}
+
+function taskDisplayName(task: TaskDetailResult): string {
+  return task.name || task.meta.res.name || task.id
 }
 
 function formatBytes(bytes: number): string {
@@ -205,19 +221,7 @@ onUnmounted(() => {
       <p v-if="message" class="message" role="status">{{ message }}</p>
     </section>
 
-    <section v-if="player" class="panel player-panel">
-      <div class="section-heading">
-        <div>
-          <p class="section-kicker">视频预览</p>
-          <h2>{{ player.name }}</h2>
-        </div>
-        <button class="text-button" type="button" @click="player = undefined">关闭</button>
-      </div>
-      <video :key="player.url" :src="player.url" controls autoplay playsinline>
-        当前环境不支持 video 标签。
-      </video>
-      <p class="hint">播放地址由 <code>tasks.file.access</code> 临时生成，刷新页面后需重新获取。</p>
-    </section>
+    <VideoPlayer v-if="player" :name="player.name" :url="player.url" @close="player = undefined" />
 
     <section class="panel task-panel">
       <div class="section-heading">
@@ -234,18 +238,27 @@ onUnmounted(() => {
       <ul v-else class="task-list">
         <li v-for="task in tasks" :key="task.id" class="task-card">
           <div class="task-heading">
-            <div class="task-title">
-              <strong>{{ task.name || task.meta.res.name || task.id }}</strong>
-              <span :class="['status', `status-${task.status}`]">{{ task.status }}</span>
+            <div class="task-identity">
+              <div class="task-title">
+                <strong>{{ taskDisplayName(task) }}</strong>
+                <span :class="['status', `status-${task.status}`]">{{ task.status }}</span>
+              </div>
+              <code class="task-id">任务 ID：{{ task.id }}</code>
             </div>
-            <button
-              class="danger-button"
-              type="button"
-              :disabled="deletingId === task.id"
-              @click="deleteTask(task)"
-            >
-              {{ deletingId === task.id ? '删除中…' : '删除任务' }}
-            </button>
+            <div class="delete-actions">
+              <label class="delete-files-option">
+                <input v-model="deleteFilesByTask[task.id]" type="checkbox" />
+                同时删除本地文件
+              </label>
+              <button
+                class="danger-button"
+                type="button"
+                :disabled="deletingId === task.id"
+                @click="deleteTask(task)"
+              >
+                {{ deletingId === task.id ? '删除中…' : '删除任务' }}
+              </button>
+            </div>
           </div>
 
           <div class="progress-track" aria-hidden="true">

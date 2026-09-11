@@ -1,16 +1,16 @@
 {
   "name": "<%= packageName %>",
   "private": true,
-  "version": "0.0.0",<% if (packageManager === 'pnpm') { %>
-  "packageManager": "<%= pnpmPackageManager %>",<% } %>
+  "version": "0.0.0",
   "engines": {
     "node": ">=20.19.0"
   },
   "type": "module",
   "scripts": {
     "dev": "xunlei-miniapp",
-    "build": "tsc && xunlei-miniapp build",
-    "package": "xunlei-miniapp package"<% if (features.includes('vitest')) { %>,
+    "build": "xunlei-miniapp build",
+    "package": "xunlei-miniapp package",
+    "typecheck": "tsc --noEmit"<% if (features.includes('vitest')) { %>,
     "test": "vitest run",
     "test:watch": "vitest"<% } %><% if (features.includes('lint')) { %>,
     "lint": "eslint .",

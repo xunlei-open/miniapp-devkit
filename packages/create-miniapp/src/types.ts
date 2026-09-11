@@ -21,8 +21,6 @@ export interface TemplateContext {
 	packageName: string;
 	variant: Variant;
 	features: Feature[];
-	packageManager: PackageManager;
-	pnpmPackageManager: string;
 	devkitVersion: string;
 	isTypeScript: boolean;
 }

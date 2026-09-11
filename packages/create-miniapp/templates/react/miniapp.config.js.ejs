@@ -1,10 +1,9 @@
 import { fileURLToPath, URL } from 'node:url'
-import react from '@vitejs/plugin-react'
 import { defineConfig } from '@xunlei-open/miniapp'
 
 export default defineConfig({
+  modules: ['@xunlei-open/miniapp-module-react'],
   vite: {
-    plugins: [react()],
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),

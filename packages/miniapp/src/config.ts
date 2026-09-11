@@ -1,7 +1,10 @@
 import { existsSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import { resolve } from 'node:path'
-import { loadConfigFromFile, type ConfigEnv, type UserConfig } from 'vite'
+import { pathToFileURL } from 'node:url'
+import { loadConfigFromFile, mergeConfig, type ConfigEnv, type UserConfig } from 'vite'
 import type {
+  MiniappModule,
   MiniappUserConfig,
   ResolvedMiniappConfig,
 } from './types.js'
@@ -18,6 +21,30 @@ const CONFIG_FILES = [
 const DEFAULT_EVENT_EXTENSIONS = ['.ts', '.js']
 
 export function defineConfig(config: MiniappUserConfig): MiniappUserConfig {
+  return config
+}
+
+export function defineMiniappModule(module: MiniappModule): MiniappModule {
+  return module
+}
+
+async function loadModules(names: string[], configFile: string, env: ConfigEnv): Promise<UserConfig> {
+  if (!Array.isArray(names) || names.some(name => typeof name !== 'string' || !name.trim())) {
+    throw new Error('miniapp.config modules must be an array of module names')
+  }
+  const require = createRequire(configFile)
+  let config: UserConfig = {}
+  for (const name of new Set(names)) {
+    try {
+      const { default: module } = await import(pathToFileURL(require.resolve(name)).href)
+      if (!module || typeof module !== 'object' || typeof module.name !== 'string' || !module.vite) {
+        throw new Error('must export a MiniappModule with name and vite fields')
+      }
+      config = mergeConfig(config, await resolveViteConfig(module.vite, env))
+    } catch (error) {
+      throw new Error(`Failed to load miniapp module "${name}" from ${configFile}: ${error instanceof Error ? error.message : String(error)}`, { cause: error })
+    }
+  }
   return config
 }
 
@@ -82,6 +109,9 @@ export async function loadMiniappConfig(
     eventsExtensions,
     packageOutDir: config.package?.outDir ?? 'release',
     packageFileName: config.package?.fileName,
-    vite: await resolveViteConfig(config.vite, env),
+    vite: mergeConfig(
+      await loadModules(config.modules ?? [], configFile, env),
+      await resolveViteConfig(config.vite, env),
+    ),
   }
 }

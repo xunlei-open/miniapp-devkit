@@ -1,8 +1,7 @@
 {
   "name": "<%= packageName %>",
   "private": true,
-  "version": "0.0.0",<% if (packageManager === 'pnpm') { %>
-  "packageManager": "<%= pnpmPackageManager %>",<% } %>
+  "version": "0.0.0",
   "engines": {
     "node": ">=20.19.0"
   },
@@ -23,7 +22,7 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^5.2.0",
+    "@xunlei-open/miniapp-module-react": "^<%= devkitVersion %>",
     "@xunlei-open/miniapp": "^<%= devkitVersion %>",
     "vite": "^8.0.12"<% if (features.includes('vitest')) { %>,
     "@testing-library/react": "^16.2.0",

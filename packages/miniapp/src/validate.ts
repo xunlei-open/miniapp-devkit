@@ -102,6 +102,10 @@ export async function validateMiniappDirectory(
   }
   if (manifest.entry && (manifest.entry.type ?? 'miniapp') === 'miniapp') {
     await assertPackageFile(directory, manifest.entry.url, 'entry.url')
+    const html = await readFile(resolve(directory, manifest.entry.url), 'utf8')
+    if (html.startsWith('<!-- miniapp-dev-entry:')) {
+      throw new Error('Output contains a development entry. Run build before validating or packaging.')
+    }
   }
   for (const [index, script] of (manifest.scripts ?? []).entries()) {
     await assertPackageFile(directory, script.entry, `scripts[${index}].entry`)

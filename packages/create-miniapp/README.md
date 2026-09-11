@@ -25,7 +25,7 @@
 
 生成的项目默认包含一个调用 `xunlei.tasks.create` 创建下载任务的页面示例，并声明最小权限 `tasks.create`；不包含 `src/events` 或 manifest `scripts`。需要介入下载任务生命周期时，可按照根目录 README 的“可选：让微应用响应下载事件”章节手动添加。
 
-模板使用 `miniapp.config.ts`（JavaScript 模板为 `.js`）作为唯一工具配置，并在其中通过 `vite` 字段使用 Vue、React、alias 等 Vite 能力。常用命令为：
+模板使用 `miniapp.config.ts`（JavaScript 模板为 `.js`）作为唯一工具配置。Vue/React 模板通过 `modules` 声明对应的 `@xunlei-open/miniapp-module-vue` 或 `@xunlei-open/miniapp-module-react`，自动加载框架的 Vite 插件；额外配置仍放在 `vite` 字段中。build 和 package 不执行类型检查，TS 模板提供可选的 `typecheck` 命令。常用命令为：
 
 ```bash
 pnpm dev       # xunlei-miniapp
@@ -34,6 +34,8 @@ pnpm run package # 构建、校验并生成 ZIP
 ```
 
 ## 使用
+
+生成的项目不写入 `packageManager` 字段，不固定包管理器版本。可使用 npm、yarn 或 pnpm，具体版本由用户自行管理。
 
 ```bash
 # 创建项目（推荐）

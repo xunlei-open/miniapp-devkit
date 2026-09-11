@@ -1,8 +1,7 @@
 {
   "name": "<%= packageName %>",
   "private": true,
-  "version": "0.0.0",<% if (packageManager === 'pnpm') { %>
-  "packageManager": "<%= pnpmPackageManager %>",<% } %>
+  "version": "0.0.0",
   "engines": {
     "node": ">=20.19.0"
   },
@@ -22,7 +21,7 @@
     "vue": "^3.5.13"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^6.0.6",
+    "@xunlei-open/miniapp-module-vue": "^<%= devkitVersion %>",
     "@xunlei-open/miniapp": "^<%= devkitVersion %>",
     "vite": "^8.0.12"<% if (features.includes('vitest')) { %>,
     "@vue/test-utils": "^2.4.6",

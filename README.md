@@ -63,7 +63,6 @@ my-miniapp/
 ├── src/
 │   ├── main.ts
 │   └── App.vue
-├── public/
 └── package.json
 ```
 
@@ -75,29 +74,24 @@ pnpm install
 pnpm dev
 ```
 
-保持开发服务运行，然后在迅雷客户端的微应用页面选择“加载本地应用”，选中项目根目录。页面代码修改后可以通过 Vite HMR 更新；修改 `manifest.json` 后需要在客户端重新加载应用。
-
-`pnpm dev` 实际运行的是 `xunlei-miniapp`。它会读取 `miniapp.config.ts`，再通过 Vite 启动开发服务器。
+保持开发服务运行，然后在迅雷客户端的微应用页面选择“加载本地应用”
 
 ### 3. 配置开发工具
 
-项目使用 `miniapp.config.ts` 统一配置开发、构建和打包工具。框架插件、alias、CSS 和开发服务器等原生 Vite 配置写在 `vite` 字段中：
+项目使用 `miniapp.config.ts` 统一配置开发、构建和打包工具。Vue/React 通过框架模块自动接入 Vite；alias、CSS、额外插件和开发服务器等配置仍可写在 `vite` 字段中：
 
 ```ts
-import vue from '@vitejs/plugin-vue'
 import { defineConfig } from '@xunlei-open/miniapp'
 
 export default defineConfig({
+  modules: ['@xunlei-open/miniapp-module-vue'],
   vite: {
-    plugins: [vue()],
     build: {
       target: 'es2015',
     },
   },
 })
 ```
-
-`manifest.json` 仍然独立存在，供迅雷客户端在开发和安装时读取。
 
 ### 4. 调用迅雷平台能力
 
@@ -146,6 +140,7 @@ pnpm run package
 
 - [`examples/basic-miniapp`](./examples/basic-miniapp)：脚手架默认生成的 Vanilla + TypeScript 最小示例。
 - [`examples/task-manager-miniapp`](./examples/task-manager-miniapp)：Vue + TypeScript 任务管理示例，覆盖任务创建、列表、删除和视频文件播放。
+- [`examples/github-release-miniapp`](./examples/github-release-miniapp)：React + TypeScript GitHub Release 下载示例，支持仓库地址解析、Assets 多选下载，页面和 `onResolve` 事件复用 Cheerio 解析器。
 
 ## 可选：让微应用处理下载事件
 
@@ -231,6 +226,8 @@ dist/events/onResolve.js
 ```
 
 如果项目中没有 `src/events`，插件会跳过事件构建，不影响普通页面的开发和打包。
+
+`pnpm dev` 同样会生成 `dist/events` 中的事件脚本，并在脚本及导入依赖修改时自动重建，新增、删除事件源码也会同步。页面继续使用 Vite HMR，事件脚本则由宿主沙箱加载本地产物；宿主若缓存脚本，需要重新加载应用。manifest 中声明的应用图标也会在 dev 时复制并随文件修改同步；修改 manifest 本身后仍需重启 dev 并重新加载应用。
 
 ### 运行限制
 

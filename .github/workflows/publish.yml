@@ -54,6 +54,8 @@ jobs:
 
           for manifest in \
             packages/create-miniapp/package.json \
+            packages/miniapp-module-vue/package.json \
+            packages/miniapp-module-react/package.json \
             packages/miniapp-types/package.json \
             packages/vite-plugin-miniapp/package.json
           do

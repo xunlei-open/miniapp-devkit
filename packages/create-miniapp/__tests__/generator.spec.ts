@@ -20,7 +20,6 @@ const CORE_FILES: Record<Framework, Record<Variant, string[]>> = {
 			"manifest.json",
 			"miniapp.config.js",
 			"package.json",
-			"public",
 			"src",
 		],
 		typescript: [
@@ -29,7 +28,6 @@ const CORE_FILES: Record<Framework, Record<Variant, string[]>> = {
 			"manifest.json",
 			"miniapp.config.ts",
 			"package.json",
-			"public",
 			"src",
 			"tsconfig.json",
 		],
@@ -42,7 +40,6 @@ const CORE_FILES: Record<Framework, Record<Variant, string[]>> = {
 			"manifest.json",
 			"miniapp.config.js",
 			"package.json",
-			"public",
 			"src",
 		],
 		typescript: [
@@ -51,7 +48,6 @@ const CORE_FILES: Record<Framework, Record<Variant, string[]>> = {
 			"manifest.json",
 			"miniapp.config.ts",
 			"package.json",
-			"public",
 			"src",
 			"tsconfig.app.json",
 			"tsconfig.json",
@@ -66,7 +62,6 @@ const CORE_FILES: Record<Framework, Record<Variant, string[]>> = {
 			"manifest.json",
 			"miniapp.config.js",
 			"package.json",
-			"public",
 			"src",
 		],
 		typescript: [
@@ -75,7 +70,6 @@ const CORE_FILES: Record<Framework, Record<Variant, string[]>> = {
 			"manifest.json",
 			"miniapp.config.ts",
 			"package.json",
-			"public",
 			"src",
 			"tsconfig.app.json",
 			"tsconfig.json",
@@ -164,6 +158,17 @@ for (const framework of ["vanilla", "vue", "react"] as const) {
 				devDependencies: Record<string, string>;
 			};
 			expect(pkg.scripts.dev).toBe("xunlei-miniapp");
+			expect(pkg).not.toHaveProperty("packageManager");
+			expect(pkg.scripts.build).toBe("xunlei-miniapp build");
+			if (variant === "typescript") {
+				expect(pkg.scripts.typecheck).toBeTruthy();
+			} else {
+				expect(pkg.scripts.typecheck).toBeUndefined();
+			}
+			if (framework !== "vanilla") {
+				expect(pkg.devDependencies[`@xunlei-open/miniapp-module-${framework}`]).toBe(`^${createMiniappPackage.version}`);
+				expect(pkg.devDependencies[`@vitejs/plugin-${framework}`]).toBeUndefined();
+			}
 			expect(pkg.scripts.package).toBe("xunlei-miniapp package");
 			expect(pkg.devDependencies["@xunlei-open/miniapp"]).toBe(
 				`^${createMiniappPackage.version}`,

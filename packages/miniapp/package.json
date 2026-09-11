@@ -1,6 +1,6 @@
 {
   "name": "@xunlei-open/miniapp",
-  "version": "0.1.0",
+  "version": "0.1.1-beta.1",
   "description": "Unified development CLI for Xunlei Miniapps",
   "type": "module",
   "module": "./dist/index.mjs",
@@ -52,6 +52,7 @@
   "dependencies": {
     "@xunlei-open/miniapp-types": "workspace:^",
     "@xunlei-open/vite-plugin-miniapp": "workspace:^",
+    "parse5": "^8.0.1",
     "vite": "^8.2.0",
     "yazl": "^3.3.1"
   },

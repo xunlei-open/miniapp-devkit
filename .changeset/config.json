@@ -1,11 +1,13 @@
 {
   "$schema": "https://unpkg.com/@changesets/config/schema.json",
-  "changelog": "@changesets/cli/changelog",
+  "changelog": false,
   "commit": false,
   "fixed": [
     [
       "@xunlei-open/create-miniapp",
       "@xunlei-open/miniapp",
+      "@xunlei-open/miniapp-module-vue",
+      "@xunlei-open/miniapp-module-react",
       "@xunlei-open/miniapp-types",
       "@xunlei-open/vite-plugin-miniapp"
     ]

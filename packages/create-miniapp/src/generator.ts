@@ -7,7 +7,6 @@ import packageJson from "../package.json";
 import type { CreateOptions, TemplateContext } from "./types.js";
 import {
 	hasFeature,
-	PNPM_PACKAGE_MANAGER,
 	pmDevCommand,
 	pmInstallCommand,
 	pmTestCommand,
@@ -143,8 +142,6 @@ export async function generateProject(options: CreateOptions): Promise<string> {
 		packageName: options.packageName,
 		variant: options.variant,
 		features: options.features,
-		packageManager: options.packageManager,
-		pnpmPackageManager: PNPM_PACKAGE_MANAGER,
 		devkitVersion: packageJson.version,
 		isTypeScript: options.variant === "typescript",
 	};

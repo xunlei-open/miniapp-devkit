@@ -4,7 +4,7 @@
 
 - 使用 `xunlei.tasks.create` 创建下载任务；
 - 使用 `tasks.list` 和 `tasks.detail` 获取最近 20 个任务，每 1 秒轮询一次进度；
-- 使用 `tasks.delete` 删除任务，示例默认保留已下载文件；
+- 使用 `tasks.delete` 删除任务，可选择是否同时删除本地文件；
 - 识别常见视频扩展名，使用 `tasks.file.access` 获取临时只读 URL，再交给 `<video>` 播放。
 
 下载输入框默认填入迅雷官网的 MP4 示例地址，可直接创建任务并在下载完成后测试视频播放。

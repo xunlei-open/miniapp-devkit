@@ -1,16 +1,16 @@
 {
   "name": "<%= packageName %>",
   "private": true,
-  "version": "0.0.0",<% if (packageManager === 'pnpm') { %>
-  "packageManager": "<%= pnpmPackageManager %>",<% } %>
+  "version": "0.0.0",
   "engines": {
     "node": ">=20.19.0"
   },
   "type": "module",
   "scripts": {
     "dev": "xunlei-miniapp",
-    "build": "vue-tsc -b && xunlei-miniapp build",
-    "package": "xunlei-miniapp package"<% if (features.includes('vitest')) { %>,
+    "build": "xunlei-miniapp build",
+    "package": "xunlei-miniapp package",
+    "typecheck": "vue-tsc -b"<% if (features.includes('vitest')) { %>,
     "test": "vitest run",
     "test:watch": "vitest"<% } %><% if (features.includes('lint')) { %>,
     "lint": "eslint .",
@@ -23,7 +23,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.13.10",
-    "@vitejs/plugin-vue": "^6.0.6",
+    "@xunlei-open/miniapp-module-vue": "^<%= devkitVersion %>",
     "@vue/tsconfig": "^0.9.1",
     "typescript": "~6.0.2",
     "@xunlei-open/miniapp-types": "^<%= devkitVersion %>",

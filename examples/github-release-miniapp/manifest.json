@@ -1,0 +1,17 @@
+{
+  "manifest_version": 1,
+  "name": "github-release-downloader",
+  "title": "GitHub Release 下载",
+  "description": "解析 GitHub 最新发布的 Assets，多选后使用迅雷下载。",
+  "version": "1.0.0",
+  "icon": "icon.png",
+  "entry": { "type": "miniapp", "url": "index.html" },
+  "window": { "width": 920, "height": 720 },
+  "permissions": ["network", "tasks.create"],
+  "network": { "urls": ["https://github.com/*"] },
+  "scripts": [{
+    "event": "onResolve",
+    "match": { "urls": ["https://github.com/*"] },
+    "entry": "events/onResolve.js"
+  }]
+}

@@ -2,6 +2,7 @@ import { defineConfig } from 'tsdown'
 
 export default defineConfig({
   entry: ['src/index.ts', 'src/cli.ts'],
+  copy: ['src/dev-client.js'],
   format: ['esm'],
   dts: true,
   sourcemap: true,

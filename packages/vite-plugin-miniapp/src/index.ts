@@ -5,6 +5,8 @@ import type { Plugin, UserConfig } from 'vite'
 const DEFAULT_EVENT_EXTENSIONS = ['.ts', '.js'] as const
 
 export interface MiniappOptions {
+	/** Build only sandbox entries, without the page or manifest assets. */
+	eventsOnly?: boolean
 	/** @default 'src/events' */
 	eventsDir?: string
 	/**
@@ -22,7 +24,9 @@ function getEventEntries(eventsDir: string, extensions: readonly string[]) {
 	}
 
 	return Object.fromEntries(
-		readdirSync(eventsDir)
+		readdirSync(eventsDir, { withFileTypes: true })
+			.filter((file) => file.isFile() && !file.name.endsWith('.d.ts'))
+			.map((file) => file.name)
 			.filter((file) => extensions.some((ext) => file.endsWith(ext)))
 			.map((file) => {
 				const ext = extensions.find((e) => file.endsWith(e))
@@ -84,6 +88,7 @@ function copyManifestStaticAssets(projectRoot: string, outDir: string, manifestF
 
 export default function miniapp(options: MiniappOptions = {}): Plugin {
 	const {
+		eventsOnly = false,
 		eventsDir: eventsDirOption = 'src/events',
 		eventsExtensions = DEFAULT_EVENT_EXTENSIONS,
 		manifestFile = 'manifest.json',
@@ -101,16 +106,28 @@ export default function miniapp(options: MiniappOptions = {}): Plugin {
 			outDir = config.build?.outDir ?? 'dist'
 
 			const eventsDir = resolve(projectRoot, eventsDirOption)
+			const manifest = eventsOnly ? undefined : JSON.parse(
+				readFileSync(resolve(projectRoot, manifestFile), 'utf8'),
+			) as { entry?: { type?: string; url: string } } | undefined
+			const page = manifest?.entry && (manifest.entry.type ?? 'miniapp') === 'miniapp'
+				? manifest.entry.url : undefined
 
 			return {
 				build: {
 					rollupOptions: {
 						input: {
-							...resolveExistingInput(config),
-							main: resolve(projectRoot, 'index.html'),
+							...(!eventsOnly ? {
+								...resolveExistingInput(config),
+								...(page ? { main: resolve(projectRoot, page) } : {}),
+							} : {}),
 							...getEventEntries(eventsDir, eventsExtensions),
 						},
 						output: {
+							...(eventsOnly ? {
+								format: 'es' as const,
+								chunkFileNames: 'events/chunks/[name]-[hash].js',
+								assetFileNames: 'events/assets/[name]-[hash][extname]',
+							} : {}),
 							entryFileNames(chunkInfo) {
 								if (chunkInfo.name.startsWith('events/')) {
 									return `${chunkInfo.name}.js`
@@ -124,6 +141,7 @@ export default function miniapp(options: MiniappOptions = {}): Plugin {
 		},
 
 		closeBundle() {
+			if (eventsOnly) return
 			copyFileSync(
 				resolve(projectRoot, manifestFile),
 				resolve(projectRoot, outDir, 'manifest.json'),

@@ -1,4 +1,4 @@
-import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, expect, test } from 'vitest'
@@ -71,4 +71,33 @@ test('requires exactly one miniapp config file', async () => {
       isPreview: false,
     }),
   ).rejects.toThrow('Multiple miniapp config files found')
+})
+
+test('resolves modules from the project and lets user config override module defaults', async () => {
+  const root = await createRoot()
+  const moduleDir = join(root, 'node_modules/test-miniapp-module')
+  await mkdir(moduleDir, { recursive: true })
+  await writeFile(join(moduleDir, 'package.json'), JSON.stringify({ name: 'test-miniapp-module', type: 'module', exports: './index.mjs' }))
+  await writeFile(join(moduleDir, 'index.mjs'), `export default {
+    name: 'test-miniapp-module',
+    vite: async ({ mode }) => ({
+      plugins: [{ name: 'framework-plugin' }],
+      define: { MODULE_MODE: JSON.stringify(mode) },
+      build: { target: 'es2020' },
+    }),
+  }`)
+  await writeFile(join(root, 'miniapp.config.mjs'), `export default {
+    modules: ['test-miniapp-module', 'test-miniapp-module'],
+    vite: { plugins: [{ name: 'project-plugin' }], build: { target: 'es2022' } },
+  }`)
+  const config = await loadMiniappConfig(root, { command: 'build', mode: 'testing' })
+  expect(config.vite.plugins).toEqual([{ name: 'framework-plugin' }, { name: 'project-plugin' }])
+  expect(config.vite.define).toEqual({ MODULE_MODE: '"testing"' })
+  expect(config.vite.build?.target).toBe('es2022')
+})
+
+test('reports the module name when a configured module cannot be loaded', async () => {
+  const root = await createRoot()
+  await writeFile(join(root, 'miniapp.config.mjs'), `export default { modules: ['missing-miniapp-module'] }`)
+  await expect(loadMiniappConfig(root, { command: 'serve', mode: 'development' })).rejects.toThrow('Failed to load miniapp module "missing-miniapp-module"')
 })

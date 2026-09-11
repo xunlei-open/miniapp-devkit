@@ -28,7 +28,7 @@ test('builds event entries and copies manifest assets', async () => {
   await writeFile(join(root, 'icon.svg'), '<svg xmlns="http://www.w3.org/2000/svg"/>')
   await writeFile(
     join(root, 'manifest.json'),
-    JSON.stringify({ name: 'test', title: 'Test', version: '1.0.0', icon: 'icon.svg' }),
+    JSON.stringify({ name: 'test', title: 'Test', version: '1.0.0', icon: 'icon.svg', entry: { url: 'index.html' } }),
   )
 
   const sourceDirectory = join(root, 'src')
@@ -52,12 +52,34 @@ test('builds event entries and copies manifest assets', async () => {
   })
 })
 
+test('builds only event entries without touching the local dev page or manifest assets', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'vite-plugin-miniapp-'))
+  temporaryDirectories.push(root)
+  await mkdir(join(root, 'src/events'), { recursive: true })
+  await mkdir(join(root, 'dist'), { recursive: true })
+  await writeFile(join(root, 'dist/index.html'), '<!-- local HMR entry -->')
+  await writeFile(join(root, 'src/events/onResolve.ts'), 'globalThis.__eventBuilt = true')
+  await writeFile(join(root, 'src/events/types.d.ts'), 'declare const unused: string')
+  // No source HTML or manifest: the event build must not require either.
+  await build({
+    root,
+    logLevel: 'silent',
+    plugins: [miniapp({ eventsOnly: true })],
+    build: { emptyOutDir: false },
+  })
+
+  expect(await readFile(join(root, 'dist/index.html'), 'utf8')).toBe('<!-- local HMR entry -->')
+  expect(await readFile(join(root, 'dist/events/onResolve.js'), 'utf8')).toContain('__eventBuilt')
+  expect(existsSync(join(root, 'dist/events/types.d.js'))).toBe(false)
+  expect(existsSync(join(root, 'dist/manifest.json'))).toBe(false)
+})
+
 test('builds a page-only miniapp without an events directory', async () => {
   const root = await mkdtemp(join(tmpdir(), 'vite-plugin-miniapp-'))
   temporaryDirectories.push(root)
 
   await writeFile(join(root, 'index.html'), '<!doctype html>')
-  await writeFile(join(root, 'manifest.json'), '{}')
+  await writeFile(join(root, 'manifest.json'), JSON.stringify({ entry: { url: 'index.html' } }))
 
   await build({ root, logLevel: 'silent', plugins: [miniapp()] })
 
@@ -82,6 +104,7 @@ test('does not copy manifest assets from outside the project', async () => {
         title: 'Test',
         version: '1.0.0',
         icon: '../outside.png',
+        entry: { url: 'index.html' },
       }),
     ),
   ])
