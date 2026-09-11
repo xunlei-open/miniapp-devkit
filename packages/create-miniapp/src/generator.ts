@@ -140,6 +140,7 @@ export async function generateProject(options: CreateOptions): Promise<string> {
 	const context: TemplateContext = {
 		projectName: options.projectName,
 		packageName: options.packageName,
+		packageManager: options.packageManager,
 		variant: options.variant,
 		features: options.features,
 		devkitVersion: packageJson.version,

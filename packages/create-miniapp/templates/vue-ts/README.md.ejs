@@ -1,0 +1,45 @@
+# <%= packageName %>
+
+基于 Vue + TypeScript 的迅雷微应用，包含创建下载任务的页面示例。
+
+## 环境要求
+
+- Node.js 22.18+
+
+## 项目结构
+
+```text
+.
+├── dist/                  # 开发或构建生成的代码产物
+├── release/               # 打包生成的 ZIP 安装包
+├── src/                   # 应用源码
+│   ├── main.ts            # 页面入口
+│   ├── App.vue            # 页面组件
+│   └── assets/            # 样式与静态资源
+<% if (features.includes('vitest')) { %>├── tests/                 # 测试用例
+<% } %>├── index.html             # HTML 入口
+├── manifest.json          # 应用信息与权限
+├── miniapp.config.ts      # 开发与构建配置
+└── package.json           # 依赖与命令
+```
+
+## 开发
+
+在项目目录执行：
+
+```bash
+<%= packageManager %> install
+<%= packageManager %> run dev
+```
+
+在迅雷客户端中加载本地应用的目录（默认 `dist`），并保持 dev server 运行。
+
+## 构建与打包
+
+| 命令 | 用途 |
+| --- | --- |
+| `<%= packageManager %> run build` | 构建应用 |
+| `<%= packageManager %> run package` | 自动构建并打包，无需先执行 build |
+| `<%= packageManager %> run typecheck` | 检查类型 |
+
+[开发文档](https://open.xunlei.com/doc/miniapp/introduction) · [示例代码](https://github.com/xunlei-open/miniapp-devkit/tree/main/examples)

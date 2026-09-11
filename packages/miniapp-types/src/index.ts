@@ -154,7 +154,6 @@ export interface FileInfo {
 	path: string;
 	/** 文件大小，单位为字节。 */
 	size: number;
-	req?: Request;
 }
 
 export interface Resource {
@@ -203,9 +202,11 @@ export interface Task {
 	name: string;
 	/** 任务元数据，包含请求、资源和下载选项。 */
 	meta: {
-		req: Request;
+		/** 任务详情不返回请求的附加选项。 */
+		req: Omit<Request, "extra">;
 		res: Resource;
-		opts: Options;
+		/** 任务详情不返回下载的附加选项。 */
+		opts: Omit<Options, "extra">;
 	};
 	/** 任务状态。 */
 	status: TaskStatus;
@@ -315,9 +316,16 @@ export interface TaskDeleteResult {
 
 // ─── 事件上下文类型 ──────────────────────────────────────────────
 
-/** 资源解析事件（onResolve）的结果允许省略名称、总大小和断点续传标记。 */
-export type OnResolveResource = Omit<Resource, "name" | "size" > &
-	Partial<Pick<Resource, "name" | "size">>;
+/** 仅在 onResolve 解析结果中允许为文件指定下载请求。 */
+export interface OnResolveFileInfo extends FileInfo {
+	req?: Request;
+}
+
+/** 资源解析事件（onResolve）的结果允许省略名称和总大小。 */
+export type OnResolveResource = Omit<Resource, "name" | "size" | "files"> &
+	Partial<Pick<Resource, "name" | "size">> & {
+		files: OnResolveFileInfo[];
+	};
 
 /** 资源解析事件（onResolve）的上下文。 */
 export interface OnResolveContext {

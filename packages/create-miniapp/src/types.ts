@@ -19,6 +19,7 @@ export interface CreateOptions {
 export interface TemplateContext {
 	projectName: string;
 	packageName: string;
+	packageManager: PackageManager;
 	variant: Variant;
 	features: Feature[];
 	devkitVersion: string;

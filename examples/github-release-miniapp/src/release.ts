@@ -1,5 +1,5 @@
 import { load } from 'cheerio/slim'
-import type { Resource } from '@xunlei-open/miniapp-types'
+import type { OnResolveResource } from '@xunlei-open/miniapp-types'
 
 export interface Asset { name: string; url: string; sizeText?: string }
 export interface Release { repository: string; url: string; assets: Asset[] }
@@ -91,11 +91,11 @@ export async function resolveRelease(input: string, fetcher: typeof fetch = fetc
   return { repository: repoPath.slice(1), url: page.url, assets }
 }
 
-export function releaseResource(release: Release): Resource {
+export function releaseResource(release: Release): OnResolveResource {
   return {
-    name: release.repository.replace('/', '-'), size: 0, range: false,
+    name: release.repository.replace('/', '-'), size: 0,
     files: release.assets.map(asset => ({
-      name: asset.name, size: 0, req: { url: asset.url },
+      name: asset.name, path: '', size: 0, req: { url: asset.url },
     })),
   }
 }

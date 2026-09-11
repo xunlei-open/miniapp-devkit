@@ -115,15 +115,23 @@ afterEach(() => {
 
 for (const framework of ["vanilla", "vue", "react"] as const) {
 	for (const variant of ["javascript", "typescript"] as const) {
-			test(`scaffolds ${framework}-${variant} with core files`, async () => {
+			test.each(["npm", "pnpm", "yarn"] as const)(`scaffolds ${framework}-${variant} with %s`, async (packageManager) => {
 			const targetDir = await generateProject(
-				baseOptions({ framework, variant }),
+				baseOptions({ framework, variant, packageManager }),
 			);
 
 			expect(targetDir).toBe(projectPath());
 			expect(listProjectRoot()).toEqual(
-				[...CORE_FILES[framework][variant]].sort(),
+				[...CORE_FILES[framework][variant], "README.md"].sort(),
 			);
+			const readme = fs.readFileSync(path.join(targetDir, "README.md"), "utf-8");
+			expect(readme).toContain("# test-app");
+			expect(readme).not.toContain("<%=");
+			expect(readme.includes(`${packageManager} run typecheck`)).toBe(variant === "typescript");
+			expect(readme).toContain(`${packageManager} install`);
+			for (const command of ["dev", "build", "package"]) {
+				expect(readme).toContain(`${packageManager} run ${command}`);
+			}
 			const manifest = JSON.parse(
 				fs.readFileSync(path.join(targetDir, "manifest.json"), "utf-8"),
 			) as Record<string, unknown>;

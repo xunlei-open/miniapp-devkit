@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { FileInfo, TaskDetailResult } from '@xunlei-open/miniapp-types'
+import type { FileInfo, Task, TaskDetailResult } from '@xunlei-open/miniapp-types'
 import { onMounted, onUnmounted, ref } from 'vue'
 import VideoPlayer from './components/VideoPlayer.vue'
+import { videoFiles } from './task-files'
 
-const VIDEO_EXTENSIONS = new Set(['mp4', 'webm', 'ogg', 'ogv', 'm4v', 'mov'])
 const POLL_INTERVAL_MS = 1_000
 
 const url = ref('https://www.xunlei.com/main/banner-loop.mp4')
@@ -105,7 +105,10 @@ async function deleteTask(task: TaskDetailResult) {
         ? '任务及其本地文件已删除。'
         : '任务已删除，下载文件已保留。'
       : '任务不存在或已经删除。'
-    if (player.value?.taskId === task.id) player.value = undefined
+    if (player.value && (player.value.taskId === task.id ||
+      (task.type === 'group' && task.children.some(child => child.id === player.value?.taskId)))) {
+      player.value = undefined
+    }
     delete deleteFilesByTask.value[task.id]
     await loadTasks({ silent: true })
   } catch (error) {
@@ -115,7 +118,7 @@ async function deleteTask(task: TaskDetailResult) {
   }
 }
 
-async function playVideo(task: TaskDetailResult, file: FileInfo, fileIndex: number) {
+async function playVideo(task: Task, file: FileInfo, fileIndex: number) {
   if (!hasXunleiRuntime() || task.status !== 'done') return
 
   const accessKey = `${task.id}:${fileIndex}`
@@ -140,17 +143,6 @@ async function playVideo(task: TaskDetailResult, file: FileInfo, fileIndex: numb
   }
 }
 
-function videoFiles(task: TaskDetailResult) {
-  return task.meta.res.files.flatMap((file, fileIndex) =>
-    isVideo(file) ? [{ file, fileIndex }] : [],
-  )
-}
-
-function isVideo(file: FileInfo): boolean {
-  const extension = file.name.split('.').pop()?.toLowerCase()
-  return extension ? VIDEO_EXTENSIONS.has(extension) : false
-}
-
 function taskProgress(task: TaskDetailResult): number {
   if (task.status === 'done') return 100
   if (task.size <= 0) return 0
@@ -158,7 +150,7 @@ function taskProgress(task: TaskDetailResult): number {
 }
 
 function taskDisplayName(task: TaskDetailResult): string {
-  return task.name || task.meta.res.name || task.id
+  return task.name || (task.type === 'single' ? task.meta.res.name : task.opts.name) || task.id
 }
 
 function formatBytes(bytes: number): string {
@@ -273,14 +265,14 @@ onUnmounted(() => {
           <div v-if="videoFiles(task).length" class="file-actions">
             <button
               v-for="video in videoFiles(task)"
-              :key="`${task.id}:${video.fileIndex}`"
+              :key="`${video.task.id}:${video.fileIndex}`"
               class="video-button"
               type="button"
-              :disabled="task.status !== 'done' || accessingFile === `${task.id}:${video.fileIndex}`"
-              :title="task.status === 'done' ? '获取临时地址并播放' : '任务完成后可播放'"
-              @click="playVideo(task, video.file, video.fileIndex)"
+              :disabled="video.task.status !== 'done' || accessingFile === `${video.task.id}:${video.fileIndex}`"
+              :title="video.task.status === 'done' ? '获取临时地址并播放' : '任务完成后可播放'"
+              @click="playVideo(video.task, video.file, video.fileIndex)"
             >
-              {{ accessingFile === `${task.id}:${video.fileIndex}` ? '获取地址中…' : `播放 ${video.file.name}` }}
+              {{ accessingFile === `${video.task.id}:${video.fileIndex}` ? '获取地址中…' : `播放 ${video.file.name}` }}
             </button>
           </div>
         </li>

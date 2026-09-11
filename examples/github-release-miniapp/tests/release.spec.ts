@@ -63,7 +63,7 @@ test('follows the lazy Assets fragment, not unrelated includes or release-note l
     'https://github.com/cli/cli/releases/latest', 'https://github.com/cli/cli/releases/expanded_assets/v1',
   ])
   expect(release.assets).toHaveLength(5)
-  expect(releaseResource(release).files[0]).toEqual({ name: 'app.zip', size: 0,
+  expect(releaseResource(release).files[0]).toEqual({ name: 'app.zip', path: '', size: 0,
     req: { url: 'https://github.com/cli/cli/releases/download/v1/app.zip' } })
 })
 
