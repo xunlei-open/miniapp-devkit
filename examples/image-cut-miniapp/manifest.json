@@ -1,0 +1,9 @@
+{
+  "manifest_version": 1,
+  "name": "image-cut-miniapp",
+  "title": "图片裁剪工具",
+  "description": "本地图片裁剪、实时预览，通过迅雷保存 PNG 或 JPEG 图片。",
+  "version": "1.0.0",
+  "entry": { "type": "miniapp", "url": "index.html" },
+  "permissions": ["tasks.create", "blob"]
+}

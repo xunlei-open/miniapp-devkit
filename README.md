@@ -25,11 +25,26 @@ npm run package    # 构建并生成 release/ 下的 ZIP
 
 应用信息和权限写在 `manifest.json`；开发与构建配置写在 `miniapp.config.ts` 或 `miniapp.config.js`。完整用法见[官方开发文档](https://open.xunlei.com/doc/miniapp/introduction)。
 
+## 使用 Skill 一句话开发
+
+安装[迅雷微应用开发 Skill](./skills/xunlei-miniapp-dev/SKILL.md)，让 AI Agent 帮助你创建页面、接入平台能力并完成打包。在目标项目目录执行以下命令，并按提示选择使用的 AI Agent ：
+
+```bash
+npx skills add xunlei-open/miniapp-devkit
+```
+
+安装后，在 AI Agent 中输入一句话即可开始，例如：
+
+> 使用 $xunlei-miniapp-dev 帮我开发一个迅雷图片裁剪微应用，支持选择本地图片、调整裁剪区域、预览并通过迅雷下载裁剪结果，完成后构建并打包。
+
+最终 AI Agent 生成的产物可参考[图片裁剪工具示例](./examples/image-cut-miniapp/)，了解本地图片处理与迅雷下载能力的结合方式。
+
 ## 示例代码
 
 | 示例 | 技术栈 | 重点 |
 | --- | --- | --- |
 | [基础微应用](./examples/basic-miniapp/) | Vanilla + TypeScript | 创建下载任务，最小入门项目 |
+| [图片裁剪工具](./examples/image-cut-miniapp/) | Vanilla + TypeScript | 本地图片裁剪、实时预览、通过 Blob 创建下载任务 |
 | [任务管理器](./examples/task-manager-miniapp/) | Vue + TypeScript | 任务与任务组管理、视频预览 |
 | [GitHub Release 下载](./examples/github-release-miniapp/) | React + TypeScript | 解析资源、创建任务组、下载解析事件 |
 
