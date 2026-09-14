@@ -11,12 +11,12 @@
     "build": "pnpm --recursive --stream build",
     "check": "pnpm --recursive --stream --if-present check",
     "clean": "pnpm --recursive --stream --if-present clean",
-    "changeset": "changeset",
+    "changeset": "pnpm --recursive --filter './packages/*' exec npm version --no-git-tag-version --ignore-scripts",
+    "changeset:beta": "pnpm changeset prerelease --preid=beta",
     "test": "pnpm --recursive --stream --if-present test",
     "verify": "pnpm check && pnpm test && pnpm build"
   },
   "devDependencies": {
-    "@changesets/cli": "^3.0.2",
     "@types/node": "^24.0.0",
     "tsdown": "^0.23.0",
     "typescript": "~6.0.2",

@@ -16,8 +16,8 @@
   "devDependencies": {
     "@types/node": "^22.13.10",
     "typescript": "~6.0.2",
-    "@xunlei-open/miniapp-types": "^0.1.1-beta.0",
-    "@xunlei-open/miniapp": "^0.1.1-beta.0",
+    "@xunlei-open/miniapp-types": "workspace:*",
+    "@xunlei-open/miniapp": "workspace:*",
     "vite": "^8.0.12"
   }
 }

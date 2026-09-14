@@ -1,0 +1,33 @@
+name: Update release draft
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: read
+
+concurrency:
+  group: release-draft-main
+  cancel-in-progress: true
+
+jobs:
+  draft:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Read package version
+        id: version
+        run: echo "version=$(node -p "require('./packages/miniapp/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - uses: release-drafter/release-drafter@v7
+        with:
+          version: ${{ steps.version.outputs.version }}
+          commitish: ${{ github.sha }}
+          publish: false
+          prerelease: false

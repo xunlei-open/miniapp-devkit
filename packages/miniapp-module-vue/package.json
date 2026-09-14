@@ -1,6 +1,6 @@
 {
   "name": "@xunlei-open/miniapp-module-vue",
-  "version": "0.1.1-beta.1",
+  "version": "0.1.1-beta.2",
   "description": "Vue framework module for Xunlei Miniapps",
   "type": "module",
   "exports": {
@@ -31,7 +31,7 @@
     "node": ">=20.19.0"
   },
   "peerDependencies": {
-    "@xunlei-open/miniapp": "^0.1.1-beta.0",
+    "@xunlei-open/miniapp": "^0.1.1-beta.2",
     "vite": "^8.0.0"
   },
   "dependencies": {

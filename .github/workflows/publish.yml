@@ -1,6 +1,9 @@
 name: Publish packages
 
 on:
+  push:
+    tags:
+      - 'v*-beta*'
   release:
     types: [published]
 
@@ -12,20 +15,23 @@ concurrency:
 
 jobs:
   prepare:
-    if: github.event.release.prerelease == false
+    if: >-
+      (github.event_name == 'push' && github.event.deleted == false) ||
+      (github.event_name == 'release' && github.event.release.prerelease == false)
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
       contents: read
     outputs:
-      mode: ${{ steps.plan.outputs.mode }}
-      pack-dir-artifact-id: ${{ steps.pack.outputs.pack-dir-artifact-id }}
+      artifact-id: ${{ steps.upload.outputs.artifact-id }}
+      dist-tag: ${{ steps.validate.outputs.dist-tag }}
+      version: ${{ steps.validate.outputs.version }}
 
     steps:
       - name: Check out release
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.release.tag_name }}
+          ref: ${{ github.event.release.tag_name || github.ref }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -44,48 +50,34 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Validate release tag and source commit
+        id: validate
         env:
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
-        run: |
-          git merge-base --is-ancestor HEAD origin/main
+          RELEASE_TAG: ${{ github.event.release.tag_name || github.ref_name }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: bash .github/scripts/validate-release.sh
 
-          version="$(node -p "require('./packages/miniapp/package.json').version")"
-          test "$RELEASE_TAG" = "v$version"
+      - name: Build packages and examples
+        run: pnpm build
 
-          for manifest in \
-            packages/create-miniapp/package.json \
-            packages/miniapp-module-vue/package.json \
-            packages/miniapp-module-react/package.json \
-            packages/miniapp-types/package.json \
-            packages/vite-plugin-miniapp/package.json
-          do
-            package_version="$(node -p "require('./$manifest').version")"
-            test "$package_version" = "$version"
-          done
+      - name: Install browser for example tests
+        run: pnpm --filter image-cut exec playwright install --with-deps msedge
 
       - name: Verify packages
         run: pnpm verify
 
-      - name: Resolve publish plan
-        id: plan
-        uses: changesets/action/select-mode@v2
-
-      - name: Reject unversioned changesets
-        if: steps.plan.outputs.mode == 'version'
-        run: |
-          echo "Release tag contains changesets that have not been versioned."
-          exit 1
-
       - name: Pack publishable packages
-        if: steps.plan.outputs.mode == 'publish'
-        id: pack
-        uses: changesets/action/pack@v2
+        run: pnpm --recursive --filter './packages/*' pack --pack-destination "$RUNNER_TEMP/npm-packages"
+
+      - name: Upload packages
+        id: upload
+        uses: actions/upload-artifact@v4
         with:
-          publish-plan-artifact-id: ${{ steps.plan.outputs.publish-plan-artifact-id }}
+          name: npm-packages
+          path: ${{ runner.temp }}/npm-packages/*.tgz
+          if-no-files-found: error
 
   publish:
     needs: prepare
-    if: needs.prepare.outputs.mode == 'publish'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: npm
@@ -97,13 +89,8 @@ jobs:
       - name: Check out release
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.release.tag_name }}
+          ref: ${{ github.event.release.tag_name || github.ref }}
           persist-credentials: false
-
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v6
-        with:
-          run_install: false
 
       - name: Set up Node.js
         uses: actions/setup-node@v7
@@ -112,11 +99,18 @@ jobs:
           package-manager-cache: false
 
       - name: Install publishing tools
-        run: pnpm install --frozen-lockfile --ignore-scripts
+        run: npm install --global npm@11.12.1
+
+      - name: Download packages
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: ${{ needs.prepare.outputs.artifact-id }}
+          path: ${{ runner.temp }}/npm-packages
+          merge-multiple: true
 
       - name: Publish to npm with OIDC
-        uses: changesets/action/publish@v2
-        with:
-          pack-dir-artifact-id: ${{ needs.prepare.outputs.pack-dir-artifact-id }}
-          create-github-releases: false
-          push-git-tags: false
+        env:
+          NPM_DIST_TAG: ${{ needs.prepare.outputs.dist-tag }}
+          PACKAGE_VERSION: ${{ needs.prepare.outputs.version }}
+        shell: bash
+        run: bash .github/scripts/publish-packages.sh
