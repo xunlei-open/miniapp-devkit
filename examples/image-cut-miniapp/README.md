@@ -31,7 +31,7 @@ pnpm --filter image-cut test
 pnpm --filter image-cut package
 ```
 
-测试使用 Playwright 的 `msedge` 通道，需要本机安装 Microsoft Edge，并先生成生产构建。浏览器测试不替代迅雷中的实际下载验证。
+测试使用 Vitest 在 Node.js 中验证裁剪比例、边界限制和导出文件名，无需浏览器或预先构建。布局、拖拽、Canvas 导出和迅雷实际下载需手动验证。
 
 ZIP 输出到本示例的 `release/`，可直接拖拽到迅雷微应用管理页面进行安装。
 

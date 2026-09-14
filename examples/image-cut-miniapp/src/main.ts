@@ -1,6 +1,6 @@
 import "./style.css";
 
-type Rect = { x: number; y: number; w: number; h: number };
+import { clamp, initialCrop, updateCrop, exportFilename, type Rect } from "./crop";
 const $ = <T extends HTMLElement>(id: string) =>
   document.getElementById(id) as T;
 
@@ -53,8 +53,6 @@ let width = 0,
   imageURL = "",
   loadVersion = 0,
   busy = false;
-const clamp = (v: number, min: number, max: number) =>
-  Math.min(max, Math.max(min, v));
 const ratio = () => Number(ratioInput.value);
 function status(message: string, error = false) {
   $("status").textContent = message;
@@ -104,19 +102,7 @@ function render() {
   );
 }
 function reset() {
-  const r = ratio();
-  let w = width,
-    h = height;
-  if (r) {
-    w = Math.min(width, height * r);
-    h = w / r;
-  }
-  rect = {
-    x: Math.floor((width - w) / 2),
-    y: Math.floor((height - h) / 2),
-    w: Math.max(1, Math.floor(w)),
-    h: Math.max(1, Math.floor(h)),
-  };
+  rect = initialCrop(width, height, ratio());
   render();
 }
 async function load(file?: File) {
@@ -199,30 +185,7 @@ format.onchange = render;
 for (const key of ["x", "y", "w", "h"] as const) {
   $(key).onchange = () => {
     const value = Number($<HTMLInputElement>(key).value);
-    if (!Number.isFinite(value)) {
-      render();
-      return;
-    }
-    if (key === "x" || key === "y")
-      rect[key] = clamp(
-        Math.round(value),
-        0,
-        key === "x" ? width - rect.w : height - rect.h,
-      );
-    else {
-      const r = ratio(),
-        maxW = width - rect.x,
-        maxH = height - rect.y;
-      if (r) {
-        const w = clamp(
-          key === "w" ? value : value * r,
-          1,
-          Math.min(maxW, maxH * r),
-        );
-        rect.w = Math.max(1, Math.round(w));
-        rect.h = Math.max(1, Math.min(maxH, Math.round(w / r)));
-      } else rect[key] = clamp(Math.round(value), 1, key === "w" ? maxW : maxH);
-    }
+    rect = updateCrop(rect, key, value, width, height, ratio());
     render();
   };
 }
@@ -349,13 +312,7 @@ download.onclick = async () => {
     );
     canvas.width = 1;
     canvas.height = 1;
-    const base =
-      $<HTMLInputElement>("filename")
-        .value.replace(/[<>:"/\\|?*\u0000-\u001f]/g, "_")
-        .replace(/[. ]+$/g, "")
-        .trim()
-        .slice(0, 100) || "裁剪图片";
-    const name = `${/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(base) ? "_" : ""}${base}.${mime === "image/png" ? "png" : "jpg"}`;
+    const name = exportFilename($<HTMLInputElement>("filename").value, mime);
     hostURL = await xunlei.runtime.blob.createObjectURL(blob);
     status("正在创建迅雷下载任务…");
     const task = await xunlei.tasks.create({

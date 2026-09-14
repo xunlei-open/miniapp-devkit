@@ -14,7 +14,7 @@
     "changeset": "pnpm --recursive --filter './packages/*' exec npm version --no-git-tag-version --ignore-scripts",
     "changeset:beta": "pnpm changeset prerelease --preid=beta",
     "test": "pnpm --recursive --stream --if-present test",
-    "verify": "pnpm check && pnpm test && pnpm build"
+    "verify": "pnpm build && pnpm check && pnpm test"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

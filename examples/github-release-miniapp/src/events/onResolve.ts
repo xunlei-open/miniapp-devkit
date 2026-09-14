@@ -5,7 +5,7 @@ xunlei.events.onResolve(async (ctx) => {
   try {
     repositoryUrl(ctx.req.url);
   } catch {
-    throw new MessageError("Invalid repository URL");
+    return;
   }
   ctx.res = releaseResource(await resolveRelease(ctx.req.url));
 });

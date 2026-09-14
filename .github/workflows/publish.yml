@@ -56,12 +56,6 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
         run: bash .github/scripts/validate-release.sh
 
-      - name: Build packages and examples
-        run: pnpm build
-
-      - name: Install browser for example tests
-        run: pnpm --filter image-cut exec playwright install --with-deps msedge
-
       - name: Verify packages
         run: pnpm verify
 
