@@ -1,10 +1,8 @@
 # 平台 API
 
-API 以目标版本 devkit 类型与实现为准。下面按本仓库当前类型整理，使用新版本时复核签名；旧文档片段不得覆盖 devkit 定义。
+完整签名见 [类型参考](api-types.ts) 中的 `Xunlei`。以下说明权限与运行行为。
 
 ## 页面创建任务
-
-将返回值与错误接入现有 UI，执行期间避免重复提交：
 
 ```ts
 async function createDownload(url: string) {
@@ -44,7 +42,6 @@ async function createDownload(url: string) {
 - `tasks.update` 不支持 `opts.name`、`req.url` 或暂停恢复，只使用当前 `TaskUpdateInput` 支持的 `req.labels`。事件改地址用 `ctx.task.setUrl`，不要据此推导页面改地址能力。
 - `detail.type === 'single'` 后才能读取 `meta`、`protocol`；任务组读取 `children`，不能假定每条详情都为普通任务。
 - 分页参数由页面保管，不依赖 `list` 返回 `offset` / `limit`。
-- 轮询详情时防止请求重叠、卸载时停止，并处理某个任务已删除的情况。不要发明暂停、恢复或订阅进度的 API。
 - `deleteFiles` 仅用于明确要求同时删除文件的功能，不默认打开。文件访问 URL 即取即用，不持久化。
 
 ## 网络与静态资源
@@ -64,7 +61,7 @@ async function createDownload(url: string) {
 
 ## 存储和设置
 
-`storage.get(key)` 返回字符串，缺失时为 `''`；对象自行 JSON 序列化并处理损坏数据。`settings` 是按 `manifest.settings[].name` 注入的只读快照，设置 UI 由宿主生成，赋值不能更新持久化设置。凭据不写日志或提交源码。
+`await storage.get(key)` 得到字符串，缺失时为 `''`；对象自行 JSON 序列化。`settings` 是按 `manifest.settings[].name` 注入的只读快照，未配置时可能为 `undefined`；设置 UI 由宿主生成，赋值不能更新持久化设置。
 
 ## 导出 Blob
 
@@ -78,7 +75,7 @@ await xunlei.tasks.create({ req: { url }, opts: { name: 'export.txt' } });
 
 ## 辅助 WebView
 
-动态页面提取或用户登录时使用；普通数据接口优先 fetch。需要用户交互时 headless 为 false。辅助 WebView 用于页面数据提取或登录等辅助流程，微应用本身仍使用包内 UI 页面入口。
+动态页面提取或用户登录时使用；普通数据接口优先 fetch。页面中需要用户交互时 headless 为 false；非本地开发环境中，事件脚本打开的 WebView 会被强制隐藏，不依赖它完成交互式登录。辅助 WebView 用于页面数据提取或登录等辅助流程，微应用本身仍使用包内 UI 页面入口。
 
 ```ts
 async function readPageTitle(url: string) {

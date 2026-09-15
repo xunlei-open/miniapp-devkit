@@ -41,6 +41,8 @@ export default defineConfig({
 
 ## 页面清单
 
+完整字段见 [类型参考](api-types.ts) 中的 `MiniappManifest`。
+
 下面是创建下载任务的最小页面清单，按需求替换名称与文案：
 
 ```json
@@ -57,9 +59,15 @@ export default defineConfig({
 
 `name`、`title`、`version` 必填；版本使用 semver，更新发布时递增。默认入口的 `entry.url`、`icon`、`scripts[].entry` 为相对包根目录路径，不能越界、用绝对路径或远程 URL。图标只有实际存在并进入产物后才声明；使用脚手架现有静态资源约定。
 
-新应用默认保留 `window: { width: 900, height: 700 }`，UI 按这个尺寸适配，主要内容和操作尽量一屏可见；非必要不改变默认尺寸，优先优化布局。业务内容确有需要时可以调整；用户明确指定尺寸或已有工程有尺寸约定时遵循其要求，并按最终尺寸验证。
+窗口与页面布局见 [响应式布局](responsive-ui.md)；下载生命周期扩展见 [事件脚本](events.md)。
 
-默认保留上述包内页面入口，先完成页面交互和平台调用。仅在需要介入下载生命周期时，按 [事件脚本](events.md) 添加事件源码与 scripts 声明。
+## 应用内路由
+
+需要路由时保持单一 `index.html` 入口，通过 URL 的 Hash 切换视图：
+
+- Vue Router 使用 `createWebHashHistory()`。
+- React Router 使用 `HashRouter`；使用数据路由时选 `createHashRouter()`。
+- Vanilla 可用 `location.hash` 与 `hashchange` 实现简单导航。
 
 ## 调试和打包
 
@@ -69,7 +77,7 @@ npm run dev
 
 保持服务运行，在迅雷「微应用 → 加载本地应用」选择终端提示的输出目录，默认 `dist`。页面支持 HMR；清单变更需重启服务并重载应用，事件或图标若有宿主缓存也需重载。
 
-先读 `package.json` 再运行实际存在的检查脚本。TypeScript 工程执行 `typecheck` 或等效检查：Vanilla / React 按配置使用 `tsc --noEmit` 或 `tsc -b`，Vue 使用 `vue-tsc` 检查 SFC。不要调用不存在的脚本；构建不能替代类型检查。
+构建不包含类型检查，按项目脚本单独执行；Vue 工程使用 `vue-tsc` 检查 SFC。
 
 ```bash
 npm run build
@@ -80,7 +88,7 @@ npm run package
 
 检查 ZIP 第一层直接包含 `manifest.json`、页面和资源，不能套 `dist/` 或项目目录；声明入口和图标存在，无开发入口、符号链接、无关源码或 `node_modules`。
 
-涉及 UI 布局的改动按 [响应式布局](responsive-ui.md) 检查窄屏到桌面窗口的表现。有宿主时验证核心用户流程与相关失败反馈。没有宿主时完成本地检查并提供具体加载和验证步骤。打包完成即可交付，除非用户还要求上架。
+UI 验证见 [响应式布局](responsive-ui.md)。宿主验证覆盖相关功能与失败反馈；打包与上架是独立事项。
 
 ## 安装体验指引
 
@@ -90,16 +98,3 @@ npm run package
 2. **拖拽 ZIP 安装**：运行 `npm run package` 后，将 `release` 目录中生成的 ZIP 直接拖拽到迅雷微应用管理页面进行安装。此方式使用生产产物，无需启动 dev server；代码更新后重新打包安装。
 
 给出实际的目录和 ZIP 文件路径；未执行打包时说明如何生成，不声称安装包已经存在。
-
-## devkit 源码定位
-
-在本仓库分发位置，技能目录的 `../..` 是 devkit 根目录；技能被单独安装时应定位用户提供的 checkout，不能假设相对路径仍成立。
-
-- `packages/create-miniapp/src/index.ts`：脚手架参数。
-- `packages/miniapp/README.md`、`packages/miniapp/src`：开发、构建和打包行为。
-- `packages/miniapp-types/src/index.ts`：清单和平台 API 类型标准。
-- `examples/basic-miniapp`：Vanilla + TypeScript 下载表单。
-- `examples/task-manager-miniapp`：Vue + TypeScript 任务管理和文件预览。
-- `examples/github-release-miniapp`：React + TypeScript 解析事件和任务组。
-
-按需求读取示例，不照搬示例域名、名称、权限或依赖版本。修改 devkit 工具链时遵守仓库验证要求，根目录 `pnpm verify` 执行检查、测试和构建；独立应用使用自身脚本。

@@ -9,7 +9,9 @@
   },
   "scripts": {
     "build": "pnpm --recursive --stream build",
-    "check": "pnpm --recursive --stream --if-present check",
+    "check": "pnpm skill:check && pnpm --recursive --stream --if-present check",
+    "skill:sync": "node scripts/sync-skill-types.mjs",
+    "skill:check": "node scripts/sync-skill-types.mjs --check",
     "clean": "pnpm --recursive --stream --if-present clean",
     "changeset": "pnpm --recursive --filter './packages/*' exec npm version --no-git-tag-version --ignore-scripts",
     "changeset:beta": "pnpm changeset prerelease --preid=beta",

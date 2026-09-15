@@ -1,8 +1,10 @@
 # 事件脚本（按需进阶）
 
-仅在需要自动匹配迅雷提交的链接或介入下载生命周期时读取。页面按钮触发的接口解析与创建下载任务可直接在 UI 中完成，不必添加事件。默认在已有 UI 工程中增加所需事件并保留页面入口；用户明确要求纯事件应用时，才省略 manifest.entry 和页面文件。
+用于自动匹配迅雷提交的链接或介入下载生命周期。页面按钮触发的解析与下载可直接在 UI 中完成。纯事件应用可省略 `manifest.entry` 和页面文件。
 
 ## 入口与匹配
+
+事件注册、上下文和可修改字段的完整定义见 [类型参考](api-types.ts) 中的 `XunleiEvents`、各事件 Context、`ExtensionTask` 与 `OnErrorExtensionTask`。
 
 默认 `src/events/onResolve.ts` 编译为 `events/onResolve.js`，清单声明的是产物路径：
 
@@ -41,11 +43,8 @@ xunlei.events.onResolve(async (ctx) => {
   }
   ctx.res = {
     name: '解析结果',
-    size: 0,
     files: [{
       name: 'download.bin',
-      path: 'download.bin',
-      size: 0,
       req: { url: target.href },
     }],
   };
@@ -54,20 +53,27 @@ xunlei.events.onResolve(async (ctx) => {
 
 上例不发起网络请求，因此单独使用时无需 network 权限。使用前面的远程接口清单时，应实现对应的接口调用并按响应校验数据。
 
-ctx.req 只读；给 ctx.res 赋值才会提交结果，不能仅 return resource。当前类型允许省略结果的 name / size，显式填写便于理解。未知大小填 0；当前 OnResolveResource 没有 range 字段，不要添加。真实文件名与 path 要处理非法字符、Windows 保留名称及越界路径。无需处理时不赋值；匹配到但解析失败时输出明确错误。
+ctx.req 只读；给 ctx.res 赋值才会提交结果，不能仅 return resource。解析结果按 `OnResolveResource` / `OnResolveFileInfo` 填写：
+
+- 资源的 `files` 必填，资源的 `name`、`size` 可省略。
+- 每个文件的 `req` 必填，其中 `req.url` 必填；文件的 `name`、`path`、`size` 可省略。只知道下载地址时，文件项可仅写 `{ req: { url } }`。
+- 可选字段不接受 `null`；普通任务详情中的 `Resource` / `FileInfo` 仍要求名称、路径和大小。
+- 当前 `OnResolveResource` 没有 `range` 字段，不要添加；显式提供文件名与 `path` 时，要处理非法字符、Windows 保留名称及越界路径。
+
+无需处理时不赋值；匹配到但解析失败时输出明确错误。
 
 ## 生命周期能力
 
 | 事件 | 可用操作 |
 | --- | --- |
-| onResolve | 读 ctx.req，写 ctx.res.files |
+| onResolve | 读 ctx.req，给 ctx.res 赋值 |
 | onStart | ctx.task.setUrl；ctx.task.meta.req.setLabels / putLabel / delLabel |
 | onError | 开始事件的控制能力，另有只读 ctx.error 和 ctx.task.continue() |
 | onDone | ctx.task 只读，没有任务控制方法 |
 
 控制方法返回 Promise。上下文控制由事件声明授权，不需要额外 tasks 权限；网络、blob、webview 仍要各自权限。MessageError 仅在 onResolve 中有用户 toast 的特殊语义，其它运行位置自行处理用户反馈。
 
-事件无 DOM、页面导航与 xunlei.tasks，也不提供 Node.js 文件系统。devkit 的全局类型含 tasks 不能作为事件注入依据。需要 DOM 解析时在辅助 WebView 的 execute 中执行，不直接使用 document。
+事件无 DOM、页面导航，也不提供 Node.js 文件系统。事件中的 `xunlei.tasks` 可用能力以目标宿主版本为准。需要 DOM 解析时在辅助 WebView 的 execute 中执行，不直接使用 document。
 
 每次触发创建独立运行时，完成后回收；跨触发数据放 xunlei.storage，不依赖模块缓存或常驻循环。单次事件总时限约 60 秒，给网络和等待操作设置合理超时，错误恢复有界重试。活跃 blob 数据源可延续运行时，不要创建下载数据后立即撤销 URL。
 

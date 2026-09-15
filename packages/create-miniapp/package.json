@@ -1,6 +1,6 @@
 {
   "name": "@xunlei-open/create-miniapp",
-  "version": "0.1.1-beta.2",
+  "version": "0.1.1-beta.3",
   "description": "Create a Xunlei Miniapp with Vanilla, Vue, or React",
   "type": "module",
   "bin": {
