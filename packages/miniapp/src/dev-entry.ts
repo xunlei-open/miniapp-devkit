@@ -105,6 +105,7 @@ export function localDevEntry(
     const htmlNode = document.childNodes.find(node => 'tagName' in node && node.tagName === 'html') as DefaultTreeAdapterMap['element']
     const head = htmlNode.childNodes.find(node => 'tagName' in node && node.tagName === 'head') as DefaultTreeAdapterMap['element']
     const script = parseFragment(`<script data-miniapp-dev-load-error>${bootstrap}</script>`).childNodes[0] as DefaultTreeAdapterMap['element']
+    script.attrs.push({ name: 'data-miniapp-dev-probe', value: new URL(server.config.base, entryUrl).href })
     script.parentNode = head
     head.childNodes.unshift(script)
     inlineModules.clear()

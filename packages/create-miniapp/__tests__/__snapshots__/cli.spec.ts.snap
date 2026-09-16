@@ -10,7 +10,7 @@ Arguments:
 
 Options:
   -V, --version            output the version number
-  --framework <framework>  vanilla | vue | react
+  --framework <framework>  vue | react | vanilla
   --variant <variant>      typescript | javascript
   --features <features>    comma-separated: lint,biome,vitest (lint and biome
                            are mutually exclusive; eslint/prettier alias lint)

@@ -14,7 +14,7 @@ export function checkTaskDetails(task: Task, group: TaskGroup, ctx: OnResolveCon
     req: { url: task.meta.req.url, extra: { header: { Referer: 'https://example.com' } } },
     opts: { path: task.meta.opts.path, extra: { connections: 4 } },
   }
-  const groupInput: TaskCreateGroupInput = { name: 'downloads', reqs: [input.req], opts: input.opts }
+  const groupInput: TaskCreateGroupInput = { name: 'downloads', tasks: [input], opts: input.opts }
   ctx.res = { files: [{ name: 'app.zip', path: '', size: 0, req: input.req }] }
   ctx.req.extra
   return groupInput

@@ -27,7 +27,7 @@ program
 	.description("Xunlei Open Platform plugin scaffold")
 	.version(packageJson.version)
 	.argument("[project-name]", "project name")
-	.option("--framework <framework>", "vanilla | vue | react")
+	.option("--framework <framework>", "vue | react | vanilla")
 	.option("--variant <variant>", "typescript | javascript")
 	.option(
 		"--features <features>",
@@ -46,7 +46,7 @@ program
 				const parsed = parseFramework(frameworkInput);
 				if (!parsed) {
 					throw new Error(
-						`Unknown framework: ${frameworkInput} (supported: vanilla | vue | react)`,
+						`Unknown framework: ${frameworkInput} (supported: vue | react | vanilla)`,
 					);
 				}
 				defaults.framework = parsed;
@@ -124,7 +124,7 @@ function resolveOptionsFromDefaults(
 	const packageName = toPackageName(defaults.packageName ?? projectName);
 	assertValidPackageName(packageName);
 
-	const framework = (defaults.framework ?? "vanilla") as Framework;
+	const framework = (defaults.framework ?? "vue") as Framework;
 	const variant = (defaults.variant ?? "typescript") as Variant;
 
 	const features = normalizeFeatures(defaults.features, framework);

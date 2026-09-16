@@ -68,13 +68,18 @@ test("rejects invalid package name", async () => {
 	await expect(runPrompts()).rejects.toThrow(/Invalid package name/);
 });
 
-test("framework defaults to vanilla when defaults omit framework", async () => {
+test("framework defaults to vue when defaults omit framework", async () => {
 	await runPrompts();
 
 	expect(mockSelect).toHaveBeenCalledWith(
 		expect.objectContaining({
 			message: "Select a framework:",
-			default: "vanilla",
+			default: "vue",
+			choices: [
+				{ name: "Vue", value: "vue" },
+				{ name: "React", value: "react" },
+				{ name: "Vanilla", value: "vanilla" },
+			],
 		}),
 	);
 });

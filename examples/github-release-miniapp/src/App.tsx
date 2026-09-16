@@ -43,7 +43,7 @@ export default function App() {
     try {
       await xunlei.tasks.createGroup({
         name: release.repository.replaceAll('/', '-'),
-        reqs: assets.map(asset => ({ url: asset.url })),
+        tasks: assets.map(asset => ({ req: { url: asset.url } })),
       })
       setSelected(new Set())
       setMessage(`已创建任务组，包含 ${assets.length} 个文件。`)

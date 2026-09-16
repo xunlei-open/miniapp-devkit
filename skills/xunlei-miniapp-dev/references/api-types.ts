@@ -179,7 +179,7 @@ export type OptsExtra = HttpOptsExtra;
 export interface Options {
 	/** 指定保存的文件名。 */
 	name?: string;
-	/** 指定文件保存路径。 */
+	/** 指定文件保存路径，当未指定时使用宿主默认下载目录，如果是任务组里面的子任务只支持相对路径。 */
 	path?: string;
 	/** 下载的附加选项。 */
 	extra?: OptsExtra;
@@ -271,7 +271,8 @@ export interface TaskCreateInput {
 export interface TaskCreateGroupInput {
 	/** 单个目录名，不允许路径分隔符、. 或 ..。 */
 	name: string;
-	reqs: Request[];
+	/** 要创建的子任务列表。 */
+	tasks: TaskCreateInput[];
 	/** path 为父目录；未指定时使用宿主默认下载目录。 */
 	opts?: Options;
 }

@@ -65,7 +65,7 @@ async function eventCode(root: string): Promise<string> {
   return (await read(join(root, 'output/events'))).join('\n')
 }
 
-test('dev handles module load errors locally and build removes the handler', async () => {
+test('dev embeds a local connection monitor and build removes it', async () => {
   const root = await project(false)
   await mkdir(join(root, 'output'), { recursive: true })
   await writeFile(join(root, 'output/miniapp-dev-client.js'), '// Local development bootstrap: must work without the dev server.\noldBootstrap()')
@@ -81,34 +81,10 @@ test('dev handles module load errors locally and build removes the handler', asy
   expect(code).not.toMatch(/[\r\n]/)
   await expect(readFile(join(root, 'output/miniapp-dev-client.js'))).rejects.toMatchObject({ code: 'ENOENT' })
 
-  for (const bodyReady of [true, false]) {
-    const listeners = new Map<string, (...args: any[]) => void>()
-    const appendChild = vi.fn()
-    const document = {
-      body: bodyReady ? { appendChild } : null as null | { appendChild: typeof appendChild },
-      createElement: vi.fn(() => ({ setAttribute: vi.fn(), style: {}, textContent: '', appendChild: vi.fn() })),
-      addEventListener: vi.fn((name, callback) => listeners.set(name, callback)),
-    }
-    const window = { addEventListener: vi.fn((name, callback) => listeners.set(name, callback)) }
-    runInNewContext(code, { window, document })
-    expect(window.addEventListener).toHaveBeenCalledWith('error', expect.any(Function), true)
-    expect(document.createElement).not.toHaveBeenCalled()
-    const onError = listeners.get('error')!
-    onError({ target: window })
-    onError({ target: { tagName: 'IMG' } })
-    onError({ target: { tagName: 'SCRIPT', hasAttribute: () => false } })
-    expect(document.createElement).not.toHaveBeenCalled()
-    const failedModule = { tagName: 'SCRIPT', hasAttribute: (name: string) => name === 'data-miniapp-dev-module' }
-    onError({ target: failedModule })
-    onError({ target: failedModule })
-    if (!bodyReady) {
-      expect(appendChild).not.toHaveBeenCalled()
-      document.body = { appendChild }
-      listeners.get('DOMContentLoaded')!()
-    }
-    expect(appendChild).toHaveBeenCalledTimes(1)
-    expect(appendChild.mock.calls[0]![0].appendChild.mock.calls[0][0].textContent).toBe('请启动 dev server 后重新打开微应用')
-  }
+  const probeUrl = html.match(/data-miniapp-dev-probe="([^"]+)"/)![1]!
+  const ping = await fetch(probeUrl, { headers: { Accept: 'text/x-vite-ping', Origin: 'null' } })
+  expect(ping.status).toBe(204)
+  expect(ping.headers.get('access-control-allow-origin')).toBe('null')
 
   const listeners = new Map<string, () => void>()
   const timer = vi.fn()
@@ -118,6 +94,7 @@ test('dev handles module load errors locally and build removes the handler', asy
     replaceWith: vi.fn(),
   }))
   const document = {
+    currentScript: { getAttribute: () => probeUrl },
     querySelectorAll: vi.fn(() => placeholders.slice()),
     createElement: vi.fn(() => ({ setAttribute: vi.fn(), addEventListener: vi.fn(), type: '', src: '' })),
   }
@@ -125,6 +102,9 @@ test('dev handles module load errors locally and build removes the handler', asy
     window: { addEventListener: (name: string, callback: () => void) => listeners.set(name, callback) },
     document,
     setTimeout: timer,
+    setInterval: vi.fn(),
+    AbortController,
+    fetch: vi.fn().mockResolvedValue({ status: 204 }),
   })
   expect(document.createElement).not.toHaveBeenCalled()
   listeners.get('load')!()

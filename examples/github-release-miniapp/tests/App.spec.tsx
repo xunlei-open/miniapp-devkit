@@ -31,7 +31,7 @@ test('React page resolves input and downloads only checked assets', async () => 
   fireEvent.click(screen.getByLabelText('app.zip'))
   fireEvent.click(screen.getByText('下载所选'))
   await waitFor(() => expect(screen.getByRole('status').textContent).toContain('已创建任务组，包含 1 个文件'))
-  expect(createGroup).toHaveBeenCalledExactlyOnceWith({ name: 'cli-cli', reqs: [{ url: assets[0].url }] })
+  expect(createGroup).toHaveBeenCalledExactlyOnceWith({ name: 'cli-cli', tasks: [{ req: { url: assets[0].url } }] })
   expect((screen.getByLabelText('app.zip') as HTMLInputElement).checked).toBe(false)
 })
 
@@ -46,7 +46,7 @@ test('group creation failure retains all selections and retry submits one group'
   expect((screen.getByLabelText('app.exe') as HTMLInputElement).checked).toBe(true)
   fireEvent.click(screen.getByText('下载所选'))
   await waitFor(() => expect(createGroup).toHaveBeenCalledTimes(2))
-  expect(createGroup.mock.calls[0][0]).toEqual({ name: 'cli-cli', reqs: assets.map(asset => ({ url: asset.url })) })
+  expect(createGroup.mock.calls[0][0]).toEqual({ name: 'cli-cli', tasks: assets.map(asset => ({ req: { url: asset.url } })) })
   expect(createGroup.mock.calls[1][0]).toEqual(createGroup.mock.calls[0][0])
   await waitFor(() => expect((screen.getByLabelText('app.exe') as HTMLInputElement).checked).toBe(false))
   expect((screen.getByLabelText('app.zip') as HTMLInputElement).checked).toBe(false)

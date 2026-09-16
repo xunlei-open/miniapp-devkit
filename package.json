@@ -12,7 +12,7 @@
     "check": "pnpm --recursive --stream --if-present check",
     "skill:sync": "node scripts/sync-skill-types.mjs",
     "clean": "pnpm --recursive --stream --if-present clean",
-    "changeset": "pnpm --recursive --filter './packages/*' exec npm version --no-git-tag-version --ignore-scripts",
+    "changeset": "pnpm --recursive --filter \"./packages/*\" exec npm version --no-git-tag-version --ignore-scripts",
     "changeset:beta": "pnpm changeset prerelease --preid=beta",
     "test": "pnpm --recursive --stream --if-present test",
     "verify": "pnpm build && pnpm check && pnpm test"

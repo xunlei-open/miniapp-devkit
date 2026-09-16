@@ -24,11 +24,11 @@ export async function runPrompts(
 	const framework = await select({
 		message: "Select a framework:",
 		choices: [
-			{ name: "Vanilla", value: "vanilla" as const },
 			{ name: "Vue", value: "vue" as const },
 			{ name: "React", value: "react" as const },
+			{ name: "Vanilla", value: "vanilla" as const },
 		],
-		default: defaults.framework ?? "vanilla",
+		default: defaults.framework ?? "vue",
 	});
 
 	const variant = await selectVariant(defaults.variant);

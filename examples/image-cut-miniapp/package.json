@@ -10,9 +10,9 @@
     "dev": "xunlei-miniapp",
     "build": "xunlei-miniapp build",
     "package": "xunlei-miniapp package",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "vue-tsc --noEmit",
     "test": "vitest run",
-    "check": "tsc --noEmit"
+    "check": "vue-tsc --noEmit"
   },
   "devDependencies": {
     "@types/node": "^22.13.10",
@@ -20,6 +20,14 @@
     "@xunlei-open/miniapp-types": "workspace:*",
     "typescript": "~6.0.2",
     "vite": "^8.0.12",
-    "vitest": "^5.0.0"
+    "vitest": "^5.0.0",
+    "@xunlei-open/miniapp-module-vue": "workspace:*",
+    "vue-tsc": "^2.2.8",
+    "@vue/test-utils": "^2.4.6",
+    "jsdom": "^29.0.0",
+    "@vitejs/plugin-vue": "^6.0.0"
+  },
+  "dependencies": {
+    "vue": "^3.5.13"
   }
 }

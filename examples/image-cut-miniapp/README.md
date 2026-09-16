@@ -1,6 +1,6 @@
 # 图片裁剪工具
 
-Vanilla + TypeScript 示例，支持选择或拖入本地图片、调整裁剪区域、实时预览，并通过迅雷保存 PNG 或 JPEG 图片。图片在本地处理，无需上传或请求外部资源。
+Vue 3 + TypeScript 示例，支持选择或拖入本地图片、调整裁剪区域、实时预览，并通过迅雷保存 PNG 或 JPEG 图片。图片在本地处理，无需上传或请求外部资源。
 
 支持 JPG、PNG、WebP、BMP，可自由裁剪或选择固定比例，也可通过像素输入和方向键精确调整。页面采用响应式布局，窄屏上下排列，桌面并排展示裁剪区和设置区。
 
@@ -31,7 +31,9 @@ pnpm --filter image-cut test
 pnpm --filter image-cut package
 ```
 
-测试使用 Vitest 在 Node.js 中验证裁剪比例、边界限制和导出文件名，无需浏览器或预先构建。布局、拖拽、Canvas 导出和迅雷实际下载需手动验证。
+`src/App.vue` 使用 Composition API 管理图片、裁剪和导出状态，`src/crop.ts` 保留独立的裁剪计算；通过 `@xunlei-open/miniapp-module-vue` 构建，使用 `vue-tsc` 检查单文件组件。
+
+测试使用 Vitest 验证裁剪算法，并通过 Vue Test Utils 与 jsdom 验证图片选择、参数与预览更新、下载任务和卸载清理。Canvas、图片解码与宿主 API 在组件测试中模拟；实际布局、拖拽、图片编码和迅雷下载仍需手动验证。
 
 ZIP 输出到本示例的 `release/`，可直接拖拽到迅雷微应用管理页面进行安装。
 

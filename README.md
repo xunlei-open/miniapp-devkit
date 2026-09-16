@@ -44,7 +44,7 @@ npx skills add xunlei-open/miniapp-devkit
 | 示例 | 技术栈 | 重点 |
 | --- | --- | --- |
 | [基础微应用](./examples/basic-miniapp/) | Vanilla + TypeScript | 创建下载任务，最小入门项目 |
-| [图片裁剪工具](./examples/image-cut-miniapp/) | Vanilla + TypeScript | 本地图片裁剪、实时预览、通过 Blob 创建下载任务 |
+| [图片裁剪工具](./examples/image-cut-miniapp/) | Vue + TypeScript | 本地图片裁剪、实时预览、通过 Blob 创建下载任务 |
 | [任务管理器](./examples/task-manager-miniapp/) | Vue + TypeScript | 任务与任务组管理、视频预览 |
 | [GitHub Release 下载](./examples/github-release-miniapp/) | React + TypeScript | 解析资源、创建任务组、下载解析事件 |
 

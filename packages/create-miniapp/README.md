@@ -1,6 +1,6 @@
 # @xunlei-open/create-miniapp
 
-迅雷微应用项目脚手架，支持 Vanilla、Vue、React 的 JavaScript / TypeScript 模板。
+迅雷微应用项目脚手架，支持 Vue、React、Vanilla 的 JavaScript / TypeScript 模板。框架选项按此顺序排列，交互模式和 `--yes` 默认使用 Vue + TypeScript；可通过 `--framework` 和 `--variant` 显式指定。
 
 ## 创建项目
 

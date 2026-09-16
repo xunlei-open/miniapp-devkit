@@ -24,7 +24,7 @@ async function createDownload(url: string) {
 | 能力 | 权限 | 关键行为 |
 | --- | --- | --- |
 | `tasks.create({ req, opts? })` | `tasks.create` | 返回单任务 |
-| `tasks.createGroup({ name, reqs, opts? })` | `tasks.create` | 共享下载目录；name 是单个目录名 |
+| `tasks.createGroup({ name, tasks, opts? })` | `tasks.create` | 共享下载目录；name 是单个目录名；tasks 中每项为 `{ req, opts? }` |
 | `tasks.list({ offset?, limit?, status?, sort? })` | `tasks.list` | 返回 `{ ids, total }`，不是任务数组 |
 | `tasks.detail({ id })` | `tasks.detail` | 返回 `Task \| TaskGroup` |
 | `tasks.update({ id, req: { labels } })` | `tasks.update` | 当前只支持更新标签 |
@@ -45,6 +45,8 @@ async function createDownload(url: string) {
 - `deleteFiles` 仅用于明确要求同时删除文件的功能，不默认打开。文件访问 URL 即取即用，不持久化。
 
 ## 网络与静态资源
+
+开发资源加载和主页面与辅助 WebView 的跨域差异见 [运行环境与构建选择](runtime.md)。
 
 直接请求远程接口时合并所需权限和规则，不覆盖已有配置：
 

@@ -5,14 +5,16 @@
 环境要求 Node.js 22.18+，宿主验证使用支持微应用的 Windows 迅雷客户端。在用户指定的父目录执行，将名称和技术栈替换为实际选择：
 
 ```bash
-npx @xunlei-open/create-miniapp@latest my-miniapp --yes --framework vanilla --variant typescript --package-manager npm --no-install
+npx @xunlei-open/create-miniapp@latest my-miniapp --yes --framework vue --variant typescript --package-manager npm --no-install
 cd my-miniapp
 npm install
 ```
 
-`--framework` 支持 `vanilla|vue|react`；`--variant` 支持 `typescript|javascript`；`--package-manager` 支持 `npm|pnpm|yarn`。按需添加 `--features lint,vitest` 或 `--features biome`，lint 与 biome 互斥，Vue 的 Biome 支持为实验性。`--no-install` 避免脚手架安装后直接进入长驻开发服务，随后单独安装和启动。已有工程不要重新生成，沿用其锁文件。
+框架选项按 Vue、React、Vanilla 排列；交互模式和 `--yes` 未指定框架时默认 Vue，语言默认 TypeScript。用户指定技术栈时遵循其选择。`--framework` 支持 `vue|react|vanilla`；`--variant` 支持 `typescript|javascript`；`--package-manager` 支持 `npm|pnpm|yarn`。按需添加 `--features lint,vitest` 或 `--features biome`，lint 与 biome 互斥，Vue 的 Biome 支持为实验性。`--no-install` 避免脚手架安装后直接进入长驻开发服务，随后单独安装和启动。已有工程不要重新生成，沿用其锁文件。
 
 ## 文件职责
+
+资源路径、开发服务器默认配置和 Worker 构建见 [运行环境与构建选择](runtime.md)。
 
 | 文件 | 用途 |
 | --- | --- |
