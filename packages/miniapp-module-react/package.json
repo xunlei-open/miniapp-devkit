@@ -1,6 +1,6 @@
 {
   "name": "@xunlei-open/miniapp-module-react",
-  "version": "0.1.1-beta.4",
+  "version": "0.1.1-beta.5",
   "description": "React framework module for Xunlei Miniapps",
   "type": "module",
   "exports": {

@@ -125,8 +125,6 @@ export default function miniapp(options: MiniappOptions = {}): Plugin {
 						output: {
 							...(eventsOnly ? {
 								format: 'es' as const,
-								chunkFileNames: 'events/chunks/[name]-[hash].js',
-								assetFileNames: 'events/assets/[name]-[hash][extname]',
 							} : {}),
 							entryFileNames(chunkInfo) {
 								if (chunkInfo.name.startsWith('events/')) {

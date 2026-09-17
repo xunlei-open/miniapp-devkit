@@ -541,7 +541,47 @@ export type WebviewExecutable<T = unknown> =
 	| string
 	| ((...args: unknown[]) => T | Promise<T>);
 
+/** WebView 事件及其回调参数。导航和加载事件仅针对主页面，不包含 iframe。 */
+export interface WebviewEventMap {
+	/** 实际地址发生变化，包含同一文档内的导航；不表示页面已加载完成。 */
+	"url-changed": {
+		url: string;
+		/** 是否为 hash、History API 等同一文档内的地址变化。 */
+		sameDocument: boolean;
+	};
+	/**
+	 * 主页面触发 window.load，表示文档及阻塞 load 的资源已结束加载，不代表业务异步任务完成。
+	 * 刷新页面会触发；仅 hash 或 History API 引起的同一文档内导航不触发。
+	 */
+	"load": {
+		url: string;
+	};
+	/** 页面加载失败。 */
+	"load-error": {
+		url: string;
+		message: string;
+	};
+	/** 页面已关闭。 */
+	"closed": {
+		/** 用户关闭窗口，或通过 close() 关闭页面。 */
+		reason: "user" | "api";
+	};
+}
+
+/** 取消本次监听，可重复调用，页面关闭后调用也安全。 */
+export type WebviewUnsubscribe = () => Promise<void>;
+
 export interface WebviewPage {
+	/**
+	 * 注册事件监听；Promise 完成表示监听已就绪，并返回取消监听函数。
+	 * 不回放当前状态；需要监听导航时，应在 goto() 前完成注册。
+	 * 页面关闭时先通知 closed 监听器，再自动释放全部监听。
+	 * 回调仅用于通知，不能阻止导航；宿主不等待异步回调，异步错误由调用方处理。
+	 */
+	on<K extends keyof WebviewEventMap>(
+		event: K,
+		handler: (data: WebviewEventMap[K]) => void,
+	): Promise<WebviewUnsubscribe>;
 	/** 在后续导航的页面上下文创建前注入脚本。 */
 	addInitScript(script: string): Promise<void>;
 	/** 导航到指定网址。 */

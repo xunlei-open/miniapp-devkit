@@ -1,8 +1,9 @@
-import { mkdir, readdir, rm, writeFile } from 'node:fs/promises'
+import { readdir } from 'node:fs/promises'
 import { dirname, isAbsolute, relative, resolve, sep } from 'node:path'
 import type { MiniappManifest } from '@xunlei-open/miniapp-types'
 import miniappPlugin from '@xunlei-open/vite-plugin-miniapp'
-import { build, normalizePath, type Plugin, type ViteDevServer } from 'vite'
+import { build, type Plugin, type ViteDevServer } from 'vite'
+import { eventOutput } from './event-output.js'
 import { loadMiniappConfig } from './config.js'
 import type { ResolvedMiniappConfig } from './types.js'
 
@@ -11,7 +12,10 @@ export function devEvents(config: ResolvedMiniappConfig, outDir: string, manifes
   const eventsDir = resolve(config.root, config.eventsDir)
   let server: ViteDevServer
   let dependencies = new Set<string>()
-  let outputs = new Set<string>()
+  const publish = eventOutput(outDir, ['manifest.json', 'index.html',
+    ...(manifest.entry ? [manifest.entry.url] : []),
+    ...(manifest.icon ? [manifest.icon] : []),
+  ])
   let pending = Promise.resolve()
   let stopped = false
   let failed = false
@@ -26,6 +30,16 @@ export function devEvents(config: ResolvedMiniappConfig, outDir: string, manifes
       && config.eventsExtensions.some(ext => source.name.endsWith(ext)))
     const nextDependencies = new Set<string>()
     const files = new Map<string, string | Uint8Array>()
+    const entries = new Set<string>()
+    const trackDependencies = (): Plugin => ({
+      name: 'miniapp-dev-events-dependencies',
+      generateBundle() {
+        for (const file of this.getModuleIds()) {
+          const path = file.split('?')[0]!
+          if (isAbsolute(path)) nextDependencies.add(resolve(path))
+        }
+      },
+    })
     if (hasEntries) {
       // Vite plugins can hold server state. Never reuse the live page's instances.
       const eventConfig = await loadMiniappConfig(config.root, {
@@ -39,6 +53,10 @@ export function devEvents(config: ResolvedMiniappConfig, outDir: string, manifes
         mode,
         publicDir: false,
         logLevel: 'warn',
+        worker: {
+          ...eventConfig.vite.worker,
+          plugins: () => [...(eventConfig.vite.worker?.plugins?.() ?? []), trackDependencies()],
+        },
         plugins: [
           ...(eventConfig.vite.plugins ?? []),
           miniappPlugin({
@@ -46,15 +64,7 @@ export function devEvents(config: ResolvedMiniappConfig, outDir: string, manifes
             eventsDir: config.eventsDir,
             eventsExtensions: config.eventsExtensions,
           }),
-          {
-            name: 'miniapp-dev-events-output',
-            generateBundle() {
-              for (const file of this.getModuleIds()) {
-                const path = file.split('?')[0]!
-                if (isAbsolute(path)) nextDependencies.add(resolve(path))
-              }
-            },
-          },
+          trackDependencies(),
         ],
         build: {
           ...options,
@@ -82,35 +92,16 @@ export function devEvents(config: ResolvedMiniappConfig, outDir: string, manifes
       for (const bundle of Array.isArray(result) ? result : [result]) {
         if (!('output' in bundle)) throw new Error('Unexpected event build watcher')
         for (const file of bundle.output) {
+          if (files.has(file.fileName)) throw new Error(`Event build emitted duplicate output: ${file.fileName}`)
           files.set(file.fileName, file.type === 'chunk' ? file.code : file.source)
+          if (file.type === 'chunk' && file.isEntry) entries.add(file.fileName)
         }
       }
     }
 
     dependencies = nextDependencies
     server.watcher.add([...dependencies])
-    // Publish only event outputs, and only after a successful compilation.
-    for (const name of files.keys()) {
-      const path = normalizePath(relative(outDir, resolve(outDir, name)))
-      if (!path.startsWith('events/') || path.includes('../')) {
-        throw new Error(`Event build emitted a file outside events/: ${name}`)
-      }
-    }
-    for (const [name, content] of files) {
-      const path = resolve(outDir, name)
-      await mkdir(dirname(path), { recursive: true })
-      await writeFile(path, content)
-    }
-    for (const name of outputs) {
-      if (!files.has(name)) await rm(resolve(outDir, name), { force: true })
-    }
-    outputs = new Set(files.keys())
-    for (const script of manifest.scripts ?? []) {
-      const entry = normalizePath(relative(outDir, resolve(outDir, script.entry)))
-      if (!outputs.has(entry)) {
-        throw new Error(`manifest script "${script.entry}" has no built event entry. Add its source to ${config.eventsDir}.`)
-      }
-    }
+    await publish(files, entries, (manifest.scripts ?? []).map(script => script.entry))
     if (hasEntries) server.config.logger.info('[miniapp] Event scripts built. Reload the application in the host if it caches scripts.')
   }
 
