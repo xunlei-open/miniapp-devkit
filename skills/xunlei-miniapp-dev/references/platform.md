@@ -32,6 +32,8 @@ async function createDownload(url: string) {
 | `tasks.file.access({ taskId, fileIndex })` | `tasks.file.access` | 返回只读临时 URL |
 | `runtime.blob.*` | `blob` | 用于下载时还需 tasks.create |
 | `runtime.webview.*` | `webview` | 未声明时 isAvailable 返回 false |
+| `host.env.*` | 无 | 页面和事件脚本均可用 |
+| `host.ui.*` | 无 | 仅页面可用，事件脚本不注入 |
 | 直接网络请求 | `network` | 同时需要 network.urls 匹配 |
 | storage / settings / info / logger / 事件注册 | 无 | 仍受所在运行环境限制 |
 
@@ -64,6 +66,29 @@ async function createDownload(url: string) {
 ## 存储和设置
 
 `await storage.get(key)` 得到字符串，缺失时为 `''`；对象自行 JSON 序列化。`settings` 是按 `manifest.settings[].name` 注入的只读快照，未配置时可能为 `undefined`；设置 UI 由宿主生成，赋值不能更新持久化设置。
+
+## 宿主环境与 UI
+
+`host.env` 读宿主当前状态，页面和事件脚本均可用；`host.ui` 操作宿主界面，仅页面可用。两者均无权限要求。环境值是按需查询的当前值，用户在宿主中修改后（换下载目录、切主题）后续调用返回新值，不要缓存当常量；暂无变更订阅，需要跟随主题时在页面激活等时机重查。
+
+```ts
+// 跟随宿主外观。
+const [color, mode] = await Promise.all([
+  xunlei.host.env.themeColor(),
+  xunlei.host.env.themeMode(),
+]);
+
+// 选目录、建任务、跳转高亮。
+const dir = await xunlei.host.env.defaultDownloadDir();
+const picked = await xunlei.host.ui.pickDirectory({ defaultPath: dir });
+const task = await xunlei.tasks.create({
+  req: { url },
+  opts: { path: picked?.path ?? dir },
+});
+await xunlei.host.ui.openTaskList({ taskId: task.id });
+```
+
+`pickDirectory` 用户取消时返回 `null`，不抛错，不要用 try/catch 区分取消；错误处理只留给真错误。`themeMode` 在宿主设置为跟随系统时返回解析后的 `light` 或 `dark`，不返回 auto。`openTaskList` 的 `taskId` 不存在或列表中不可见时仅跳转、不高亮，不报错。
 
 ## 导出 Blob
 

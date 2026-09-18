@@ -778,6 +778,62 @@ export interface XunleiRuntime {
 	webview: XunleiRuntimeWebview;
 }
 
+// ─── 宿主环境与 UI 类型 ──────────────────────────────────────────
+
+/** 宿主主题模式。 */
+export type HostThemeMode = "light" | "dark";
+
+/** 宿主环境信息查询接口，页面和事件脚本均可用。 */
+export interface XunleiHostEnv {
+	/**
+	 * 宿主默认下载目录，绝对路径。
+	 * 用户在宿主中修改后，后续调用返回新值。
+	 */
+	defaultDownloadDir(): Promise<string>;
+	/**
+	 * 宿主当前主题模式；宿主设置为跟随系统时返回解析后的结果，不返回 auto。
+	 * 主题变化后，后续调用返回新值。
+	 */
+	themeMode(): Promise<HostThemeMode>;
+}
+
+export interface UiPickDirectoryOptions {
+	/** 对话框初始定位的目录，绝对路径；未指定时定位到宿主默认下载目录。 */
+	defaultPath?: string;
+}
+
+/** 目录选择结果。 */
+export interface UiPickDirectoryResult {
+	/** 用户选择的目录绝对路径。 */
+	path: string;
+}
+
+export interface UiOpenTaskListOptions {
+	/** 跳转后高亮选中的任务标识；任务不存在或不可见时仅跳转，不高亮。 */
+	taskId?: string;
+}
+
+/** 宿主 UI 操作接口，仅微应用页面可用，事件脚本不注入。 */
+export interface XunleiHostUi {
+	/** 打开宿主目录选择器；用户取消时返回 null，不视为错误。 */
+	pickDirectory(
+		opts?: UiPickDirectoryOptions,
+	): Promise<UiPickDirectoryResult | null>;
+	/** 跳转到宿主任务列表页，可选高亮指定任务。 */
+	openTaskList(opts?: UiOpenTaskListOptions): Promise<void>;
+}
+
+/**
+ * 宿主环境与 UI 接口，与 info（微应用自身信息）相对。
+ * env 读宿主状态，页面和事件脚本均可用；ui 操作宿主界面，仅页面可用。
+ */
+export interface XunleiHost {
+	/** 宿主环境信息。 */
+	env: XunleiHostEnv;
+	/** 宿主 UI 操作，仅页面可用。 */
+	ui: XunleiHostUi;
+}
+
 export interface Xunlei {
 	/** 微应用信息（只读）。 */
 	info: XunleiInfo;
@@ -793,6 +849,8 @@ export interface Xunlei {
 	events: XunleiEvents;
 	/** 运行时能力接口。 */
 	runtime: XunleiRuntime;
+	/** 宿主环境与 UI 接口。 */
+	host: XunleiHost;
 }
 
 // ─── 其他类型 ────────────────────────────────────────────────────
