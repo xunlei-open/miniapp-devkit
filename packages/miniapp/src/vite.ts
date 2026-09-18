@@ -40,7 +40,7 @@ function createInlineConfig(config: ResolvedMiniappConfig): InlineConfig {
 }
 
 export function resolveOutputDirectory(config: ResolvedMiniappConfig): string {
-  return resolve(config.root, config.vite.build?.outDir ?? 'dist')
+  return resolve(config.root, config.vite.build?.outDir ?? 'output')
 }
 
 export async function buildMiniapp(
@@ -77,7 +77,20 @@ export async function devMiniapp(
   )
 
   const inlineConfig = createInlineConfig(config)
-  const outDir = resolveOutputDirectory(config)
+  const outDir = resolve(config.root, config.devOutDir)
+  // Vite should ignore the on-disk development output as well as production output.
+  inlineConfig.server = {
+    ...inlineConfig.server,
+    watch: {
+      ...inlineConfig.server?.watch,
+      ignored: [
+        ...(Array.isArray(inlineConfig.server?.watch?.ignored)
+          ? inlineConfig.server.watch.ignored
+          : inlineConfig.server?.watch?.ignored ? [inlineConfig.server.watch.ignored] : []),
+        `${outDir.replaceAll('\\', '/')}/**`,
+      ],
+    },
+  }
   const devEntry = localDevEntry(config.root, outDir, config.manifestFile, manifest)
   const events = devEvents(config, outDir, manifest, mode)
   inlineConfig.plugins = [...(inlineConfig.plugins ?? []), devEntry.plugin, events.plugin]

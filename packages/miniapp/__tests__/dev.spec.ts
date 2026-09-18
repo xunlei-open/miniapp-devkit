@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import { runInNewContext } from 'node:vm'
 import type { ViteDevServer } from 'vite'
 import { afterEach, expect, test, vi } from 'vitest'
-import { buildMiniapp, devMiniapp } from '../src/vite.js'
+import { buildMiniapp, devMiniapp, validateBuiltMiniapp } from '../src/vite.js'
 import { packageMiniapp } from '../src/package.js'
 import { validateMiniappDirectory } from '../src/validate.js'
 
@@ -23,7 +23,7 @@ async function project(withEvents = true) {
   await mkdir(join(root, 'src/events'), { recursive: true })
   await writeFile(join(root, 'miniapp.config.mjs'), `export default {
     vite: {
-      server: { port: 0 }, logLevel: 'silent', build: { outDir: 'output' },
+      server: { port: 0 }, logLevel: 'silent', build: { outDir: 'production' },
       plugins: [(() => {
         let command;
         return {
@@ -62,24 +62,60 @@ async function eventCode(root: string): Promise<string> {
     }
     return result
   }
-  return (await read(join(root, 'output/events'))).join('\n')
+  return (await read(join(root, 'dist/events'))).join('\n')
 }
 
-test('dev embeds a local connection monitor and build removes it', async () => {
+test('build and package leave an active dev session intact with isolated default outputs', async () => {
+  const root = await project()
+  await writeFile(join(root, 'miniapp.config.mjs'), "export default { vite: { server: { port: 0 }, logLevel: 'silent' } }")
+  const server = await devMiniapp({ root })
+  servers.push(server)
+  const html = await readFile(join(root, 'dist/index.html'), 'utf8')
+  const devEvent = await readFile(join(root, 'dist/events/onResolve.js'), 'utf8')
+  const built = await buildMiniapp({ root })
+  expect(built.outDir).toBe(join(root, 'output'))
+  expect(await readFile(join(built.outDir, 'index.html'), 'utf8')).not.toContain('miniapp-dev-entry')
+  expect((await validateBuiltMiniapp({ root })).directory).toBe(built.outDir)
+  const archive = await packageMiniapp({ root, build: false })
+  expect(archive.outFile).toBe(join(root, 'output/dev-test-1.0.0.zip'))
+  expect((await readFile(archive.outFile)).readUInt32LE(0)).toBe(0x04034b50)
+  await packageMiniapp({ root })
+  expect(await readdir(built.outDir)).toEqual(['dev-test-1.0.0.zip'])
+  expect(await readFile(join(root, 'dist/index.html'), 'utf8')).toBe(html)
+  expect(await readFile(join(root, 'dist/events/onResolve.js'), 'utf8')).toBe(devEvent)
+  await expect(readdir(join(root, 'release'))).rejects.toMatchObject({ code: 'ENOENT' })
+
+  await writeFile(join(root, 'main.ts'), 'const invalid = ;')
+  await expect(buildMiniapp({ root })).rejects.toThrow()
+  expect(await readFile(join(root, 'dist/index.html'), 'utf8')).toBe(html)
+  await writeFile(join(root, 'main.ts'), 'document.body.dataset.loaded = "recovered"')
+  await buildMiniapp({ root })
+
+  // Event rebuilds still work, and cannot mutate the production output.
+  const productionEvent = await readFile(join(built.outDir, 'events/onResolve.js'), 'utf8')
+  await writeFile(join(root, 'src/shared.ts'), 'export const value = "after-production-build"')
+  await expect.poll(() => eventCode(root), { timeout: 10000 }).toContain('after-production-build')
+  expect(await readFile(join(built.outDir, 'events/onResolve.js'), 'utf8')).toBe(productionEvent)
+  await writeFile(join(root, 'index.html'), '<html><body>updated-page<script type="module" src="/main.ts"></script></body></html>')
+  await expect.poll(() => readFile(join(root, 'dist/index.html'), 'utf8'), { timeout: 10000 }).toContain('updated-page')
+  expect((await fetch(new URL('/main.ts', server.resolvedUrls!.local[0]!))).status).toBe(200)
+}, 30000)
+
+test('dev embeds a local connection monitor while production HTML excludes it', async () => {
   const root = await project(false)
-  await mkdir(join(root, 'output'), { recursive: true })
-  await writeFile(join(root, 'output/miniapp-dev-client.js'), '// Local development bootstrap: must work without the dev server.\noldBootstrap()')
+  await mkdir(join(root, 'dist'), { recursive: true })
+  await writeFile(join(root, 'dist/miniapp-dev-client.js'), '// Local development bootstrap: must work without the dev server.\noldBootstrap()')
   const source = await readFile(join(root, 'index.html'), 'utf8')
   const server = await devMiniapp({ root })
   servers.push(server)
-  const html = await readFile(join(root, 'output/index.html'), 'utf8')
+  const html = await readFile(join(root, 'dist/index.html'), 'utf8')
   expect(html).toMatch(/data-miniapp-dev-src="http:\/\/[^\"]+\/main.ts" data-miniapp-dev-module/)
   expect(html).not.toMatch(/<script[^>]* type="module"/)
   expect(html).toContain('type="application/x-miniapp-dev-module"')
   expect(html).not.toContain('src="./miniapp-dev-client.js"')
   const code = html.match(/<script data-miniapp-dev-load-error[^>]*>([\s\S]*?)<\/script>/)![1]!
   expect(code).not.toMatch(/[\r\n]/)
-  await expect(readFile(join(root, 'output/miniapp-dev-client.js'))).rejects.toMatchObject({ code: 'ENOENT' })
+  await expect(readFile(join(root, 'dist/miniapp-dev-client.js'))).rejects.toMatchObject({ code: 'ENOENT' })
 
   const probeUrl = html.match(/data-miniapp-dev-probe="([^"]+)"/)![1]!
   const ping = await fetch(probeUrl, { headers: { Accept: 'text/x-vite-ping', Origin: 'null' } })
@@ -118,24 +154,24 @@ test('dev embeds a local connection monitor and build removes it', async () => {
   expect(await readFile(join(root, 'index.html'), 'utf8')).toBe(source)
   await server.close()
   servers.splice(servers.indexOf(server), 1)
-  await writeFile(join(root, 'miniapp.config.mjs'), "export default { vite: { logLevel: 'silent', build: { outDir: 'output' } } }")
+  await writeFile(join(root, 'miniapp.config.mjs'), "export default { vite: { logLevel: 'silent', build: { outDir: 'production' } } }")
   await buildMiniapp({ root })
-  const builtHtml = await readFile(join(root, 'output/index.html'), 'utf8')
+  const builtHtml = await readFile(join(root, 'production/index.html'), 'utf8')
   expect(builtHtml).not.toContain('miniapp-dev-')
   expect(builtHtml).not.toContain('dev server')
   expect(builtHtml).not.toContain('/main.ts')
-  await expect(readFile(join(root, 'output/miniapp-dev-client.js'))).rejects.toMatchObject({ code: 'ENOENT' })
+  await expect(readFile(join(root, 'production/miniapp-dev-client.js'))).rejects.toMatchObject({ code: 'ENOENT' })
 })
 
 test('dev builds event scripts and watches their imports without overwriting the HMR page', async () => {
   const root = await project()
   const server = await devMiniapp({ root })
   servers.push(server)
-  const html = await readFile(join(root, 'output/index.html'), 'utf8')
+  const html = await readFile(join(root, 'dist/index.html'), 'utf8')
   expect(html).toContain('miniapp-dev-entry:')
   expect(html).toContain('/@vite/client')
   expect(await eventCode(root)).toContain('initial-event')
-  expect(await readFile(join(root, 'output/events/onResolve.js'), 'utf8')).not.toContain('import.meta.hot')
+  expect(await readFile(join(root, 'dist/events/onResolve.js'), 'utf8')).not.toContain('import.meta.hot')
 
   await writeFile(join(root, 'src/shared.ts'), 'export const value: string = "updated-dependency"')
   await expect.poll(() => eventCode(root), { timeout: 10000 }).toContain('updated-dependency')
@@ -146,10 +182,10 @@ test('dev builds event scripts and watches their imports without overwriting the
   await writeFile(join(root, 'src/shared.ts'), 'export const value = "recovered-event"')
   await expect.poll(() => eventCode(root), { timeout: 10000 }).toContain('recovered-event')
   await writeFile(join(root, 'src/events/onDone.ts'), 'import { value } from "../shared"; globalThis.doneValue = value')
-  await expect.poll(() => readFile(join(root, 'output/events/onDone.js'), 'utf8').catch(() => ''), { timeout: 10000 }).toContain('doneValue')
+  await expect.poll(() => readFile(join(root, 'dist/events/onDone.js'), 'utf8').catch(() => ''), { timeout: 10000 }).toContain('doneValue')
   await rm(join(root, 'src/events/onDone.ts'))
-  await expect.poll(() => readFile(join(root, 'output/events/onDone.js'), 'utf8').then(() => true, () => false), { timeout: 10000 }).toBe(false)
-  expect(await readFile(join(root, 'output/index.html'), 'utf8')).toBe(html)
+  await expect.poll(() => readFile(join(root, 'dist/events/onDone.js'), 'utf8').then(() => true, () => false), { timeout: 10000 }).toBe(false)
+  expect(await readFile(join(root, 'dist/index.html'), 'utf8')).toBe(html)
   const url = server.resolvedUrls!.local[0]!
   expect((await fetch(new URL('/main.ts', url))).status).toBe(200)
 }, 30000)
@@ -158,13 +194,13 @@ test('dev synchronizes the declared icon on edits, removal and recreation', asyn
   const root = await project(false)
   const server = await devMiniapp({ root })
   servers.push(server)
-  expect(await readFile(join(root, 'output/icon.svg'), 'utf8')).toContain('initial-icon')
+  expect(await readFile(join(root, 'dist/icon.svg'), 'utf8')).toContain('initial-icon')
   await writeFile(join(root, 'icon.svg'), '<svg>updated-icon</svg>')
-  await expect.poll(() => readFile(join(root, 'output/icon.svg'), 'utf8'), { timeout: 10000 }).toContain('updated-icon')
+  await expect.poll(() => readFile(join(root, 'dist/icon.svg'), 'utf8'), { timeout: 10000 }).toContain('updated-icon')
   await rm(join(root, 'icon.svg'))
-  await expect.poll(() => readFile(join(root, 'output/icon.svg')).then(() => true, () => false), { timeout: 10000 }).toBe(false)
+  await expect.poll(() => readFile(join(root, 'dist/icon.svg')).then(() => true, () => false), { timeout: 10000 }).toBe(false)
   await writeFile(join(root, 'icon.svg'), '<svg>restored-icon</svg>')
-  await expect.poll(() => readFile(join(root, 'output/icon.svg'), 'utf8').catch(() => ''), { timeout: 10000 }).toContain('restored-icon')
+  await expect.poll(() => readFile(join(root, 'dist/icon.svg'), 'utf8').catch(() => ''), { timeout: 10000 }).toContain('restored-icon')
 }, 30000)
 
 test('dev rejects missing manifest event sources instead of reporting ready', async () => {
@@ -176,26 +212,26 @@ test('dev rejects missing manifest event sources instead of reporting ready', as
 test('event Worker and WASM use default assets paths, rebuild on Worker imports and retain old assets', async () => {
   const root = await project()
   const config = await readFile(join(root, 'miniapp.config.mjs'), 'utf8')
-  await writeFile(join(root, 'miniapp.config.mjs'), config.replace("outDir: 'output'", "outDir: 'output', assetsInlineLimit: 0"))
+  await writeFile(join(root, 'miniapp.config.mjs'), config.replace("outDir: 'production'", "outDir: 'production', assetsInlineLimit: 0"))
   await writeFile(join(root, 'src/kernel.wasm'), new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0]))
   await writeFile(join(root, 'src/worker-value.ts'), 'export const value = "first-worker"')
   await writeFile(join(root, 'src/worker.ts'), 'import { value } from "./worker-value"; import wasm from "./kernel.wasm?url"; postMessage({ value, wasm })')
   await writeFile(join(root, 'src/events/onResolve.ts'), 'globalThis.worker = new Worker(new URL("../worker.ts", import.meta.url), { type: "module" })')
   const server = await devMiniapp({ root })
   servers.push(server)
-  const html = await readFile(join(root, 'output/index.html'), 'utf8')
-  const original = await readFile(join(root, 'output/events/onResolve.js'), 'utf8')
-  const initial = await readdir(join(root, 'output/assets'))
+  const html = await readFile(join(root, 'dist/index.html'), 'utf8')
+  const original = await readFile(join(root, 'dist/events/onResolve.js'), 'utf8')
+  const initial = await readdir(join(root, 'dist/assets'))
   expect(initial.some(name => name.endsWith('.js'))).toBe(true)
   expect(initial.some(name => name.endsWith('.wasm'))).toBe(true)
   expect(original).toContain('assets/')
   await writeFile(join(root, 'src/worker-value.ts'), 'export const value = "second-worker"')
-  await expect.poll(() => readFile(join(root, 'output/events/onResolve.js'), 'utf8'), { timeout: 10000 }).not.toBe(original)
-  for (const name of initial) expect(await readFile(join(root, 'output/assets', name))).toBeDefined()
-  expect(await readFile(join(root, 'output/index.html'), 'utf8')).toBe(html)
-  const updated = await readFile(join(root, 'output/events/onResolve.js'), 'utf8')
+  await expect.poll(() => readFile(join(root, 'dist/events/onResolve.js'), 'utf8'), { timeout: 10000 }).not.toBe(original)
+  for (const name of initial) expect(await readFile(join(root, 'dist/assets', name))).toBeDefined()
+  expect(await readFile(join(root, 'dist/index.html'), 'utf8')).toBe(html)
+  const updated = await readFile(join(root, 'dist/events/onResolve.js'), 'utf8')
   await writeFile(join(root, 'src/kernel.wasm'), new Uint8Array([0, 97, 115, 109, 2, 0, 0, 0]))
-  await expect.poll(() => readFile(join(root, 'output/events/onResolve.js'), 'utf8'), { timeout: 10000 }).not.toBe(updated)
+  await expect.poll(() => readFile(join(root, 'dist/events/onResolve.js'), 'utf8'), { timeout: 10000 }).not.toBe(updated)
 }, 30000)
 
 test('events-only apps support dev, dependency and icon updates, build and package without HTML', async () => {
@@ -210,12 +246,12 @@ test('events-only apps support dev, dependency and icon updates, build and packa
   servers.push(server)
   expect(server.httpServer).toBeNull()
   expect(await eventCode(root)).toContain('initial-event')
-  expect(JSON.parse(await readFile(join(root, 'output/manifest.json'), 'utf8'))).toEqual(manifest)
-  await expect(readFile(join(root, 'output/index.html'))).rejects.toMatchObject({ code: 'ENOENT' })
+  expect(JSON.parse(await readFile(join(root, 'dist/manifest.json'), 'utf8'))).toEqual(manifest)
+  await expect(readFile(join(root, 'dist/index.html'))).rejects.toMatchObject({ code: 'ENOENT' })
   await writeFile(join(root, 'src/shared.ts'), 'export const value = "events-only-update"')
   await expect.poll(() => eventCode(root), { timeout: 10000 }).toContain('events-only-update')
   await writeFile(join(root, 'icon.svg'), '<svg>events-only-icon</svg>')
-  await expect.poll(() => readFile(join(root, 'output/icon.svg'), 'utf8'), { timeout: 10000 }).toContain('events-only-icon')
+  await expect.poll(() => readFile(join(root, 'dist/icon.svg'), 'utf8'), { timeout: 10000 }).toContain('events-only-icon')
   await server.close()
   servers.splice(servers.indexOf(server), 1)
 

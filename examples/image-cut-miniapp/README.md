@@ -35,6 +35,6 @@ pnpm --filter image-cut package
 
 测试使用 Vitest 验证裁剪算法，并通过 Vue Test Utils 与 jsdom 验证图片选择、参数与预览更新、下载任务和卸载清理。Canvas、图片解码与宿主 API 在组件测试中模拟；实际布局、拖拽、图片编码和迅雷下载仍需手动验证。
 
-ZIP 输出到本示例的 `release/`，可直接拖拽到迅雷微应用管理页面进行安装。
+ZIP 输出到本示例的 `output/`，可直接拖拽到迅雷微应用管理页面进行安装。
 
 [返回项目首页](../../README.md)

@@ -12,7 +12,7 @@ export interface MiniappEventsConfig {
 }
 
 export interface MiniappPackageConfig {
-  /** 未显式指定输出文件时使用的打包目录。默认值：`release`。 */
+  /** 未显式指定输出文件时使用的打包目录。默认值：`output`。 */
   outDir?: string
   /** 压缩包文件名，不得包含目录，须以 `.zip` 结尾。默认由清单中的名称和版本经文件名清理后拼接为 `<名称>-<版本>.zip`。 */
   fileName?: string
@@ -24,6 +24,11 @@ export type MiniappViteConfig =
   | ((env: ConfigEnv) => MaybePromise<UserConfig>)
 
 export interface MiniappUserConfig {
+  /** 开发产物配置；独立于 vite.build.outDir。 */
+  dev?: {
+    /** 开发输出目录。默认值：`dist`。不能与生产构建目录重叠。 */
+    outDir?: string
+  }
   /** 框架模块列表，按声明顺序从项目依赖中解析并加载，重复模块仅加载一次。 */
   modules?: string[]
   /** 微应用清单路径，默认相对于项目根目录。默认值：`manifest.json`。 */
@@ -50,6 +55,7 @@ export interface ResolvedMiniappConfig {
   manifestFile: string
   eventsDir: string
   eventsExtensions: string[]
+  devOutDir: string
   packageOutDir: string
   packageFileName?: string
   vite: UserConfig

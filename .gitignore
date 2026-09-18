@@ -1,5 +1,7 @@
 node_modules/
 dist/
+output/
+# Legacy package artifacts from earlier devkit versions.
 release/
 coverage/
 *.log

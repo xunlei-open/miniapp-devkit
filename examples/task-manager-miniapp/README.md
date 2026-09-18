@@ -32,6 +32,6 @@ pnpm exec vitest run examples/task-manager-miniapp/tests/task-files.spec.ts
 pnpm --filter task-manager-miniapp package
 ```
 
-ZIP 输出到本示例的 `release/`。
+ZIP 输出到本示例的 `output/`。
 
 [返回项目首页](../../README.md)

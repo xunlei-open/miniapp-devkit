@@ -73,6 +73,26 @@ test('requires exactly one miniapp config file', async () => {
   ).rejects.toThrow('Multiple miniapp config files found')
 })
 
+test('keeps custom development and production output configuration independent', async () => {
+  const root = await createRoot()
+  await writeFile(join(root, 'miniapp.config.mjs'), `export default {
+    dev: { outDir: 'local-dev' },
+    vite: { build: { outDir: 'artifacts/app' } },
+  }`)
+  for (const command of ['serve', 'build'] as const) {
+    const config = await loadMiniappConfig(root, { command, mode: 'development' })
+    expect(config.devOutDir).toBe('local-dev')
+    expect(config.vite.build?.outDir).toBe('artifacts/app')
+    expect(config.packageOutDir).toBe('output')
+  }
+})
+
+test.each(['dist', 'dist/production', '.'])('rejects a build output overlapping the dev directory: %s', async outDir => {
+  const root = await createRoot()
+  await writeFile(join(root, 'miniapp.config.mjs'), `export default { vite: { build: { outDir: ${JSON.stringify(outDir)} } } }`)
+  await expect(loadMiniappConfig(root, { command: 'build', mode: 'production' })).rejects.toThrow('must be separate directories')
+})
+
 test('resolves modules from the project and lets user config override module defaults', async () => {
   const root = await createRoot()
   const moduleDir = join(root, 'node_modules/test-miniapp-module')

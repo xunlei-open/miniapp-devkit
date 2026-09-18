@@ -22,7 +22,8 @@ npm install
 | `miniapp.config.ts` / `.js` | devkit 配置，额外 Vite 配置放入 `vite` |
 | `index.html`、`src/main.*` | 页面入口与源码 |
 | `src/vite-env.d.ts` | 全局类型引用 |
-| `dist/`、`release/` | 默认构建输出与 ZIP 输出 |
+| `dist/` | 默认开发输出，供宿主加载与 HMR |
+| `output/`、`output/*.zip` | 默认生产构建与 ZIP 输出 |
 
 Vue 配置示例；React 替换为 `@xunlei-open/miniapp-module-react` 并安装对应模块，Vanilla 不需要框架模块：
 
@@ -79,6 +80,8 @@ npm run dev
 
 保持服务运行，在迅雷「微应用 → 加载本地应用」选择终端提示的输出目录，默认 `dist`。页面支持 HMR；清单变更需重启服务并重载应用，事件或图标若有宿主缓存也需重载。
 
+开发与生产输出隔离：`dev.outDir` 默认 `dist`，`vite.build.outDir` 默认 `output`，`package.outDir` 默认 `output`。开发目录与生产目录不能相同或互相包含。使用这些隔离目录时，可以保持 dev 运行并执行 build/package。已有旧版 devkit 若仍将开发和构建写入同一目录，不要在开发会话中执行会覆盖该目录的 build、package 或组合验证脚本；先用类型检查、相关测试和宿主调试验证。
+
 构建不包含类型检查，按项目脚本单独执行；Vue 工程使用 `vue-tsc` 检查 SFC。
 
 ```bash
@@ -87,6 +90,8 @@ npm run package
 ```
 
 `build` 包含产物校验；`package` 默认重新构建。需要单独检查已有产物时用 `npm exec -- xunlei-miniapp validate`；已有经过检查的生产构建可用 `npm exec -- xunlei-miniapp package --no-build`，不能拿开发输出直接打包。
+
+`build` 产物直接位于 `output/`；`package` 成功生成 ZIP 后清理本次构建文件，默认目录中只留下 ZIP。失败时保留构建文件，`--no-build` 也不清理已有产物。打包清理后若需校验目录或加载生产页面，应重新 build；下一次默认构建会清空 output，需保留的 ZIP 应另行保存。
 
 检查 ZIP 第一层直接包含 `manifest.json`、页面和资源，不能套 `dist/` 或项目目录；声明入口和图标存在，无开发入口、符号链接、无关源码或 `node_modules`。
 
@@ -97,6 +102,6 @@ UI 验证见 [响应式布局](responsive-ui.md)。宿主验证覆盖相关功�
 交付时提供两种体验方式，按项目实际的包管理器、脚本和输出路径调整说明：
 
 1. **本地加载应用（推荐开发调试）**：运行 `npm run dev` 并保持服务运行，在迅雷微应用管理页面点击「加载本地应用」，选择 `dist` 目录。页面修改支持 HMR；清单修改后重启开发服务并重载应用。
-2. **拖拽 ZIP 安装**：运行 `npm run package` 后，将 `release` 目录中生成的 ZIP 直接拖拽到迅雷微应用管理页面进行安装。此方式使用生产产物，无需启动 dev server；代码更新后重新打包安装。
+2. **拖拽 ZIP 安装**：运行 `npm run package` 后，将 `output` 目录中生成的 ZIP 直接拖拽到迅雷微应用管理页面进行安装。此方式使用生产产物，无需启动 dev server；代码更新后重新打包安装。
 
 给出实际的目录和 ZIP 文件路径；未执行打包时说明如何生成，不声称安装包已经存在。

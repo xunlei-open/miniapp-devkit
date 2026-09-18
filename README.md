@@ -19,8 +19,8 @@ npm run dev
 在迅雷客户端中加载终端提示的开发目录（默认 `dist`），并保持 dev server 运行。普通浏览器不提供全局 `xunlei` 平台能力。
 
 ```bash
-npm run build      # 生成生产产物 dist/
-npm run package    # 构建并生成 release/ 下的 ZIP
+npm run build      # 生成生产产物 output/
+npm run package    # 构建并生成 output/ 下的 ZIP
 ```
 
 应用信息和权限写在 `manifest.json`；开发与构建配置写在 `miniapp.config.ts` 或 `miniapp.config.js`。完整用法见[官方开发文档](https://open.xunlei.com/doc/miniapp/introduction)。

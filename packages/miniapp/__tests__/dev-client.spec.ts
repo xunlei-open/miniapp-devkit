@@ -33,14 +33,28 @@ async function client(bodyReady = true) {
   return { fetch, reload, document, appendChild, listeners, scriptListeners }
 }
 
-test('a successfully loaded page never polls or shows a notice on later disconnection', async () => {
+test('a loaded page silently monitors disconnection and reloads once the server restarts', async () => {
   const c = await client()
   c.scriptListeners.get('load')!()
+  await vi.advanceTimersByTimeAsync(3000)
+  expect(c.fetch).toHaveBeenCalledTimes(4)
+  expect(c.reload).not.toHaveBeenCalled()
   c.fetch.mockRejectedValue(new TypeError('offline'))
   await vi.advanceTimersByTimeAsync(10000)
-  expect(c.fetch).not.toHaveBeenCalled()
+  expect(c.fetch).toHaveBeenCalledTimes(14)
   expect(c.appendChild).not.toHaveBeenCalled()
   expect(c.reload).not.toHaveBeenCalled()
+  c.fetch.mockResolvedValue({ status: 500 })
+  await vi.advanceTimersByTimeAsync(1000)
+  expect(c.reload).not.toHaveBeenCalled()
+  c.fetch.mockResolvedValue({ status: 204 })
+  await vi.advanceTimersByTimeAsync(1000)
+  expect(c.reload).toHaveBeenCalledTimes(1)
+  const attempts = c.fetch.mock.calls.length
+  await vi.advanceTimersByTimeAsync(5000)
+  expect(c.fetch).toHaveBeenCalledTimes(attempts)
+  expect(c.reload).toHaveBeenCalledTimes(1)
+  expect(c.appendChild).not.toHaveBeenCalled()
   expect(vi.getTimerCount()).toBe(0)
 })
 
@@ -51,6 +65,26 @@ test('a module error with a reachable server does not start ongoing recovery', a
   expect(c.fetch).toHaveBeenCalledTimes(1)
   expect(c.appendChild).not.toHaveBeenCalled()
   expect(c.reload).not.toHaveBeenCalled()
+  expect(vi.getTimerCount()).toBe(0)
+})
+
+test('a stalled background probe is aborted silently and cannot trigger a stale reload', async () => {
+  const c = await client()
+  let resolve!: (value: { status: number }) => void
+  c.fetch.mockImplementationOnce(() => new Promise(done => { resolve = done }))
+  c.scriptListeners.get('load')!()
+  const signal = c.fetch.mock.calls[0]![1].signal as AbortSignal
+  c.fetch.mockRejectedValue(new TypeError('offline'))
+  await vi.advanceTimersByTimeAsync(1000)
+  expect(signal.aborted).toBe(true)
+  resolve({ status: 204 })
+  await vi.advanceTimersByTimeAsync(0)
+  expect(c.reload).not.toHaveBeenCalled()
+  expect(c.appendChild).not.toHaveBeenCalled()
+  c.fetch.mockResolvedValue({ status: 204 })
+  await vi.advanceTimersByTimeAsync(1000)
+  expect(c.reload).toHaveBeenCalledTimes(1)
+  expect(c.appendChild).not.toHaveBeenCalled()
   expect(vi.getTimerCount()).toBe(0)
 })
 

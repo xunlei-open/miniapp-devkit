@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs'
 import { createRequire } from 'node:module'
-import { resolve } from 'node:path'
+import { isAbsolute, relative, resolve, sep } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { loadConfigFromFile, mergeConfig, type ConfigEnv, type UserConfig } from 'vite'
 import type {
@@ -101,17 +101,33 @@ export async function loadMiniappConfig(
     throw new Error('events.extensions must contain at least one file extension')
   }
 
+  const vite = mergeConfig(
+    { build: { outDir: 'output' } },
+    mergeConfig(
+      await loadModules(config.modules ?? [], configFile, env),
+      await resolveViteConfig(config.vite, env),
+    ),
+  )
+  const devOutDir = config.dev?.outDir ?? 'dist'
+  const devPath = resolve(root, devOutDir)
+  const buildPath = resolve(root, vite.build?.outDir ?? 'output')
+  const contains = (parent: string, child: string) => {
+    const path = relative(parent, child)
+    return path === '' || (path !== '..' && !path.startsWith(`..${sep}`) && !isAbsolute(path))
+  }
+  if (contains(devPath, buildPath) || contains(buildPath, devPath)) {
+    throw new Error('dev.outDir and vite.build.outDir must be separate directories, neither containing the other')
+  }
+
   return {
     root,
     configFile,
     manifestFile: config.manifest ?? 'manifest.json',
     eventsDir: config.events?.dir ?? 'src/events',
     eventsExtensions,
-    packageOutDir: config.package?.outDir ?? 'release',
+    devOutDir,
+    packageOutDir: config.package?.outDir ?? 'output',
     packageFileName: config.package?.fileName,
-    vite: mergeConfig(
-      await loadModules(config.modules ?? [], configFile, env),
-      await resolveViteConfig(config.vite, env),
-    ),
+    vite,
   }
 }

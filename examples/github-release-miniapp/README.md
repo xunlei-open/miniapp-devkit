@@ -56,6 +56,6 @@ pnpm --filter github-release-miniapp test
 pnpm --filter github-release-miniapp package
 ```
 
-ZIP 输出到本示例的 `release/`。
+ZIP 输出到本示例的 `output/`。
 
 [返回项目首页](../../README.md)

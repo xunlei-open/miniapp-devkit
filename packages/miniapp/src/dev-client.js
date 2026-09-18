@@ -3,11 +3,14 @@
   var shown = false;
   var disconnected = false;
   var reloaded = false;
+  var monitoring = false;
   var timer;
   var active;
   var probeUrl = document.currentScript.getAttribute('data-miniapp-dev-probe');
   function showDisconnected() {
     disconnected = true;
+    // Keep an already-loaded application usable while reconnecting silently.
+    if (monitoring) return;
     if (shown) return;
     shown = true;
     function showMessage() {
@@ -45,9 +48,10 @@
         reloaded = true;
         clearInterval(timer);
         window.location.reload();
-      } else {
+      } else if (!monitoring) {
         // A reachable server means the module failed for another reason.
         clearInterval(timer);
+        timer = undefined;
       }
     }).catch(function () {
       if (active !== controller || reloaded) return;
@@ -55,13 +59,23 @@
       showDisconnected();
     });
   }
+  function startRecovery() {
+    if (timer !== undefined || reloaded) return;
+    timer = setInterval(probeConnection, 1000);
+    probeConnection();
+  }
   // Start network requests after the host can observe the local page's load event.
   window.addEventListener('load', function () {
     setTimeout(function () {
       var pending = Array.from(document.querySelectorAll('script[data-miniapp-dev-src]'));
       function loadNext() {
         var placeholder = pending.shift();
-        if (!placeholder || shown) return;
+        if (shown) return;
+        if (!placeholder) {
+          monitoring = true;
+          startRecovery();
+          return;
+        }
         var script = document.createElement('script');
         for (var attr of placeholder.attributes) {
           if (attr.name !== 'type' && attr.name !== 'data-miniapp-dev-src') script.setAttribute(attr.name, attr.value);
@@ -69,11 +83,7 @@
         script.type = 'module';
         script.src = placeholder.getAttribute('data-miniapp-dev-src');
         script.addEventListener('load', loadNext, { once: true });
-        // Only a failed bootstrap module starts recovery. A loaded page never polls.
-        script.addEventListener('error', function () {
-          timer = setInterval(probeConnection, 1000);
-          probeConnection();
-        }, { once: true });
+        script.addEventListener('error', startRecovery, { once: true });
         placeholder.replaceWith(script);
       }
       loadNext();

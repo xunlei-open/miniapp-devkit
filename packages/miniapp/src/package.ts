@@ -1,5 +1,5 @@
 import { createWriteStream } from 'node:fs'
-import { mkdir, rm } from 'node:fs/promises'
+import { mkdir, mkdtemp, rename, rm, rmdir } from 'node:fs/promises'
 import { basename, dirname, isAbsolute, relative, resolve, sep } from 'node:path'
 import { pipeline } from 'node:stream/promises'
 import yazl from 'yazl'
@@ -47,10 +47,13 @@ async function writeZip(
   outFile: string,
 ): Promise<void> {
   await mkdir(dirname(outFile), { recursive: true })
-
+  const staging = await mkdtemp(resolve(dirname(outFile), '.miniapp-package-'))
+  const temporaryArchive = resolve(staging, 'package.zip')
   const archive = new yazl.ZipFile()
-  const output = createWriteStream(outFile)
+  const output = createWriteStream(temporaryArchive)
   const completed = pipeline(archive.outputStream, output)
+  // Observe stream failures immediately, including while entries are being added.
+  void completed.catch(() => {})
   try {
     for (const file of files) {
       archive.addFile(resolve(directory, file), file, {
@@ -61,9 +64,33 @@ async function writeZip(
     }
     archive.end()
     await completed
+    await rename(temporaryArchive, outFile)
   } catch (error) {
-    await rm(outFile, { force: true })
+    output.destroy()
+    await completed.catch(() => {})
     throw error
+  } finally {
+    await rm(temporaryArchive, { force: true })
+    await rmdir(staging)
+  }
+}
+
+async function removeBuildFiles(directory: string, files: string[]) {
+  const directories = new Set<string>()
+  for (const file of files) {
+    const path = resolve(directory, file)
+    const rel = relative(directory, path)
+    if (!rel || rel === '..' || rel.startsWith(`..${sep}`) || isAbsolute(rel)) {
+      throw new Error(`Cannot clean a file outside the build output: ${file}`)
+    }
+    await rm(path, { force: true })
+    for (let parent = dirname(path); parent !== directory; parent = dirname(parent)) directories.add(parent)
+  }
+  // Remove only empty directories; preserve the ZIP and any files added after validation.
+  for (const path of [...directories].sort((a, b) => b.length - a.length)) {
+    await rmdir(path).catch(error => {
+      if (!['ENOENT', 'ENOTEMPTY', 'EEXIST'].includes(error.code)) throw error
+    })
   }
 }
 
@@ -89,14 +116,14 @@ export async function packageMiniapp(
 
   const validated = await validateMiniappDirectory(outDir)
   const outFile = resolveArchivePath(config, validated.manifest, options.outFile)
-  const archiveRelativeToOutput = relative(outDir, outFile)
-  if (
-    archiveRelativeToOutput === '' ||
-    (!archiveRelativeToOutput.startsWith(`..${sep}`) && archiveRelativeToOutput !== '..')
-  ) {
-    throw new Error('Package output must be outside the build output directory')
+  const archiveRelativeToDev = relative(resolve(config.root, config.devOutDir), outFile)
+  if (archiveRelativeToDev === '' ||
+    (archiveRelativeToDev !== '..' && !archiveRelativeToDev.startsWith(`..${sep}`) && !isAbsolute(archiveRelativeToDev))) {
+    throw new Error('Package output must be outside the development output directory')
   }
-
-  await writeZip(outDir, validated.files, outFile)
+  // Repackaging with --no-build must not include the previous destination ZIP itself.
+  const files = validated.files.filter(file => relative(resolve(outDir, file), outFile) !== '')
+  await writeZip(outDir, files, outFile)
+  if (options.build ?? true) await removeBuildFiles(outDir, files)
   return { outFile, outDir }
 }

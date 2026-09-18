@@ -27,7 +27,7 @@ npm run dev
 npm run package
 ```
 
-开发时在迅雷客户端中加载本地应用的目录，保持 dev server 运行。打包结果位于 `release/`。
+开发时在迅雷客户端中加载本地应用的目录，保持 dev server 运行。打包结果位于 `output/`。
 
 生成项目包含创建下载任务的页面示例。应用信息和权限在 `manifest.json` 中配置，开发与构建配置使用 `miniapp.config.ts` 或 `.js`。
 

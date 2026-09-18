@@ -21,7 +21,11 @@ pnpm exec xunlei-miniapp
 | `xunlei-miniapp package` | 构建、校验并生成 ZIP |
 | `xunlei-miniapp package --no-build` | 校验并打包已有生产产物 |
 
-默认输出目录为 `dist/`，ZIP 位于 `release/`。构建与打包不自动执行类型检查。
+开发产物位于 `dist/`，生产构建位于 `output/`，ZIP 位于 `output/`。开发服务运行时可以执行构建和打包，两者不会覆盖开发入口。构建与打包不自动执行类型检查。
+
+`build` 将 HTML、清单和资源直接写入 `output/`。`package` 构建后生成 ZIP，仅在 ZIP 成功写入后清理本次构建文件，默认最终只保留安装包；打包失败保留构建文件。`package --no-build` 保留已有产物。默认下一次构建会清空 `output/`，需要长期保留的 ZIP 应另行保存。
+
+自定义开发目录使用 `dev.outDir`，生产目录使用 `vite.build.outDir`，ZIP 目录使用 `package.outDir`。开发目录与生产目录不能相同或互相包含。已有配置若将 `vite.build.outDir` 设为 `dist`，需移除该配置以使用新默认值，或改为独立的生产目录；原来通过它自定义开发路径的项目应迁移到 `dev.outDir`。旧 `release/` 文件不会自动删除。
 
 ## 配置
 
@@ -48,6 +52,6 @@ Vue / React 项目安装并声明对应框架模块；Vanilla 无需模块。额
 
 开发会话期间保留旧依赖，让已经运行的事件和 Worker 仍能加载旧版本；删除源码只清理本次会话拥有且未被外部修改的事件入口。旧哈希资源会增加磁盘占用；停止 dev 后，默认的生产全量构建会清理输出目录，仅保留本次产物。自定义 `emptyOutDir: false` 时由应用自行管理旧文件。
 
-多个入口不是一个原子事务，事件构建与独立的外部写文件进程也不构成跨进程锁；不要让 dev 和生产构建同时写同一个输出目录。入口更新后仍需按宿主缓存行为重载应用。
+多个入口不是一个原子事务，事件构建与独立的外部写文件进程也不构成跨进程锁；外部脚本不要清理或覆盖开发目录。入口更新后仍需按宿主缓存行为重载应用。
 
 [示例代码](https://github.com/xunlei-open/miniapp-devkit/tree/main/examples) · [官方文档](https://open.xunlei.com/doc/miniapp/introduction)
