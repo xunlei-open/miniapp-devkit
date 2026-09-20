@@ -12,7 +12,9 @@ export function devEvents(config: ResolvedMiniappConfig, outDir: string, manifes
   const eventsDir = resolve(config.root, config.eventsDir)
   let server: ViteDevServer
   let dependencies = new Set<string>()
-  const publish = eventOutput(outDir, ['manifest.json', 'index.html',
+  const publish = eventOutput(outDir, [
+    'manifest.json',
+    'index.html',
     ...(manifest.entry ? [manifest.entry.url] : []),
     ...(manifest.icon ? [manifest.icon] : []),
   ])
@@ -21,13 +23,16 @@ export function devEvents(config: ResolvedMiniappConfig, outDir: string, manifes
   let failed = false
 
   async function rebuild() {
-    const sources = await readdir(eventsDir, { withFileTypes: true }).catch(error => {
+    const sources = await readdir(eventsDir, { withFileTypes: true }).catch((error) => {
       if (error.code === 'ENOENT') return []
       throw error
     })
-    const hasEntries = sources.some(source => source.isFile()
-      && !source.name.endsWith('.d.ts')
-      && config.eventsExtensions.some(ext => source.name.endsWith(ext)))
+    const hasEntries = sources.some(
+      (source) =>
+        source.isFile() &&
+        !source.name.endsWith('.d.ts') &&
+        config.eventsExtensions.some((ext) => source.name.endsWith(ext)),
+    )
     const nextDependencies = new Set<string>()
     const files = new Map<string, string | Uint8Array>()
     const entries = new Set<string>()
@@ -43,7 +48,10 @@ export function devEvents(config: ResolvedMiniappConfig, outDir: string, manifes
     if (hasEntries) {
       // Vite plugins can hold server state. Never reuse the live page's instances.
       const eventConfig = await loadMiniappConfig(config.root, {
-        command: 'build', mode, isSsrBuild: false, isPreview: false,
+        command: 'build',
+        mode,
+        isSsrBuild: false,
+        isPreview: false,
       })
       const options = eventConfig.vite.build
       const result = await build({
@@ -101,14 +109,21 @@ export function devEvents(config: ResolvedMiniappConfig, outDir: string, manifes
 
     dependencies = nextDependencies
     server.watcher.add([...dependencies])
-    await publish(files, entries, (manifest.scripts ?? []).map(script => script.entry))
-    if (hasEntries) server.config.logger.info('[miniapp] Event scripts built. Reload the application in the host if it caches scripts.')
+    await publish(
+      files,
+      entries,
+      (manifest.scripts ?? []).map((script) => script.entry),
+    )
+    if (hasEntries)
+      server.config.logger.info(
+        '[miniapp] Event scripts built. Reload the application in the host if it caches scripts.',
+      )
   }
 
   function onChange(event: string, file: string) {
     if (stopped || !['add', 'change', 'unlink'].includes(event)) return
     const path = resolve(file)
-    const entry = dirname(path) === eventsDir && config.eventsExtensions.some(ext => path.endsWith(ext))
+    const entry = dirname(path) === eventsDir && config.eventsExtensions.some((ext) => path.endsWith(ext))
     const relativeToOutput = relative(outDir, path)
     if (relativeToOutput !== '..' && !relativeToOutput.startsWith(`..${sep}`) && !isAbsolute(relativeToOutput)) return
     if (!entry && !dependencies.has(path) && !failed) return
@@ -119,7 +134,9 @@ export function devEvents(config: ResolvedMiniappConfig, outDir: string, manifes
         failed = false
       } catch (error) {
         failed = true
-        server.config.logger.error(`[miniapp] Event build failed: ${error instanceof Error ? error.message : String(error)}`)
+        server.config.logger.error(
+          `[miniapp] Event build failed: ${error instanceof Error ? error.message : String(error)}`,
+        )
       }
     })
   }

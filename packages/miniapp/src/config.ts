@@ -3,11 +3,7 @@ import { createRequire } from 'node:module'
 import { isAbsolute, relative, resolve, sep } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { loadConfigFromFile, mergeConfig, type ConfigEnv, type UserConfig } from 'vite'
-import type {
-  MiniappModule,
-  MiniappUserConfig,
-  ResolvedMiniappConfig,
-} from './types.js'
+import type { MiniappModule, MiniappUserConfig, ResolvedMiniappConfig } from './types.js'
 
 const CONFIG_FILES = [
   'miniapp.config.ts',
@@ -29,7 +25,7 @@ export function defineMiniappModule(module: MiniappModule): MiniappModule {
 }
 
 async function loadModules(names: string[], configFile: string, env: ConfigEnv): Promise<UserConfig> {
-  if (!Array.isArray(names) || names.some(name => typeof name !== 'string' || !name.trim())) {
+  if (!Array.isArray(names) || names.some((name) => typeof name !== 'string' || !name.trim())) {
     throw new Error('miniapp.config modules must be an array of module names')
   }
   const require = createRequire(configFile)
@@ -42,7 +38,10 @@ async function loadModules(names: string[], configFile: string, env: ConfigEnv):
       }
       config = mergeConfig(config, await resolveViteConfig(module.vite, env))
     } catch (error) {
-      throw new Error(`Failed to load miniapp module "${name}" from ${configFile}: ${error instanceof Error ? error.message : String(error)}`, { cause: error })
+      throw new Error(
+        `Failed to load miniapp module "${name}" from ${configFile}: ${error instanceof Error ? error.message : String(error)}`,
+        { cause: error },
+      )
     }
   }
   return config
@@ -55,9 +54,7 @@ function findConfigFile(root: string): string {
     throw new Error(`No miniapp.config file found in ${root}`)
   }
   if (matches.length > 1) {
-    throw new Error(
-      `Multiple miniapp config files found: ${matches.map((file) => file.split('/').at(-1)).join(', ')}`,
-    )
+    throw new Error(`Multiple miniapp config files found: ${matches.map((file) => file.split('/').at(-1)).join(', ')}`)
   }
 
   return matches[0]!
@@ -70,10 +67,7 @@ function assertUserConfig(value: unknown, configFile: string): MiniappUserConfig
   return value as MiniappUserConfig
 }
 
-async function resolveViteConfig(
-  vite: MiniappUserConfig['vite'],
-  env: ConfigEnv,
-): Promise<UserConfig> {
+async function resolveViteConfig(vite: MiniappUserConfig['vite'], env: ConfigEnv): Promise<UserConfig> {
   if (!vite) return {}
   const config = typeof vite === 'function' ? await vite(env) : vite
   if (typeof config !== 'object' || config === null || Array.isArray(config)) {
@@ -82,10 +76,7 @@ async function resolveViteConfig(
   return config
 }
 
-export async function loadMiniappConfig(
-  rootDirectory: string,
-  env: ConfigEnv,
-): Promise<ResolvedMiniappConfig> {
+export async function loadMiniappConfig(rootDirectory: string, env: ConfigEnv): Promise<ResolvedMiniappConfig> {
   const root = resolve(rootDirectory)
   const configFile = findConfigFile(root)
   const loaded = await loadConfigFromFile(env, configFile, root)
@@ -103,10 +94,7 @@ export async function loadMiniappConfig(
 
   const vite = mergeConfig(
     { build: { outDir: 'output' } },
-    mergeConfig(
-      await loadModules(config.modules ?? [], configFile, env),
-      await resolveViteConfig(config.vite, env),
-    ),
+    mergeConfig(await loadModules(config.modules ?? [], configFile, env), await resolveViteConfig(config.vite, env)),
   )
   const devOutDir = config.dev?.outDir ?? 'dist'
   const devPath = resolve(root, devOutDir)

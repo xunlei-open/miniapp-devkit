@@ -6,16 +6,16 @@ React + TypeScript 示例，解析 GitHub 最新发布的附件和源码压缩�
 
 以 `openai/codex` 为例，以下输入均可解析同一仓库的最新版本：
 
-| 输入方式 | 示例 |
-| --- | --- |
-| 短写 | `openai/codex` |
-| URL | [https://github.com/openai/codex](https://github.com/openai/codex) |
+| 输入方式 | 示例                                                                                               |
+| -------- | -------------------------------------------------------------------------------------------------- |
+| 短写     | `openai/codex`                                                                                     |
+| URL      | [https://github.com/openai/codex](https://github.com/openai/codex)                                 |
 | 最新 URL | [https://github.com/openai/codex/releases/latest](https://github.com/openai/codex/releases/latest) |
 
 ## 涉及的 API
 
-| API | 用途 |
-| --- | --- |
+| API                        | 用途                                                 |
+| -------------------------- | ---------------------------------------------------- |
 | `xunlei.tasks.createGroup` | 将页面中勾选的资源一次创建为同一个下载目录的任务组。 |
 
 ## 钩子事件

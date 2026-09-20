@@ -5,7 +5,11 @@ import App from '../src/App'
 import { resolveRelease } from '../src/release'
 
 vi.mock('../src/release', () => ({ resolveRelease: vi.fn() }))
-afterEach(() => { cleanup(); vi.resetAllMocks(); vi.unstubAllGlobals() })
+afterEach(() => {
+  cleanup()
+  vi.resetAllMocks()
+  vi.unstubAllGlobals()
+})
 
 const assets = [
   { name: 'app.zip', url: 'https://github.com/cli/cli/releases/download/v1/app.zip', sizeText: '12.4 MB' },
@@ -13,7 +17,11 @@ const assets = [
 ]
 
 async function resolve() {
-  vi.mocked(resolveRelease).mockResolvedValue({ repository: 'cli/cli', url: 'https://github.com/cli/cli/releases/tag/v1', assets })
+  vi.mocked(resolveRelease).mockResolvedValue({
+    repository: 'cli/cli',
+    url: 'https://github.com/cli/cli/releases/tag/v1',
+    assets,
+  })
   render(<App />)
   fireEvent.change(screen.getByLabelText('GitHub 仓库'), { target: { value: 'cli/cli' } })
   fireEvent.click(screen.getByText('解析最新发布'))
@@ -46,7 +54,10 @@ test('group creation failure retains all selections and retry submits one group'
   expect((screen.getByLabelText('app.exe') as HTMLInputElement).checked).toBe(true)
   fireEvent.click(screen.getByText('下载所选'))
   await waitFor(() => expect(createGroup).toHaveBeenCalledTimes(2))
-  expect(createGroup.mock.calls[0][0]).toEqual({ name: 'cli-cli', tasks: assets.map(asset => ({ req: { url: asset.url } })) })
+  expect(createGroup.mock.calls[0][0]).toEqual({
+    name: 'cli-cli',
+    tasks: assets.map((asset) => ({ req: { url: asset.url } })),
+  })
   expect(createGroup.mock.calls[1][0]).toEqual(createGroup.mock.calls[0][0])
   await waitFor(() => expect((screen.getByLabelText('app.exe') as HTMLInputElement).checked).toBe(false))
   expect((screen.getByLabelText('app.zip') as HTMLInputElement).checked).toBe(false)

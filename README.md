@@ -41,25 +41,25 @@ npx skills add xunlei-open/miniapp-devkit
 
 ## 示例代码
 
-| 示例 | 技术栈 | 重点 |
-| --- | --- | --- |
-| [基础微应用](./examples/basic-miniapp/) | Vanilla + TypeScript | 创建下载任务，最小入门项目 |
-| [图片裁剪工具](./examples/image-cut-miniapp/) | Vue + TypeScript | 本地图片裁剪、实时预览、通过 Blob 创建下载任务 |
-| [任务管理器](./examples/task-manager-miniapp/) | Vue + TypeScript | 任务与任务组管理、视频预览 |
-| [GitHub Release 下载](./examples/github-release-miniapp/) | React + TypeScript | 解析资源、创建任务组、下载解析事件 |
+| 示例                                                      | 技术栈               | 重点                                           |
+| --------------------------------------------------------- | -------------------- | ---------------------------------------------- |
+| [基础微应用](./examples/basic-miniapp/)                   | Vanilla + TypeScript | 创建下载任务，最小入门项目                     |
+| [图片裁剪工具](./examples/image-cut-miniapp/)             | Vue + TypeScript     | 本地图片裁剪、实时预览、通过 Blob 创建下载任务 |
+| [任务管理器](./examples/task-manager-miniapp/)            | Vue + TypeScript     | 任务与任务组管理、视频预览                     |
+| [GitHub Release 下载](./examples/github-release-miniapp/) | React + TypeScript   | 解析资源、创建任务组、下载解析事件             |
 
 各示例的 README 提供运行和打包命令。
 
 ## 工具包
 
-| 包 | 用途 |
-| --- | --- |
-| [create-miniapp](./packages/create-miniapp/) | 创建项目，选择框架与可选工具 |
-| [miniapp](./packages/miniapp/) | 开发、构建、校验与打包 |
-| [miniapp-types](./packages/miniapp-types/) | 清单和平台 API 类型 |
-| [miniapp-module-vue](./packages/miniapp-module-vue/) | Vue 集成 |
-| [miniapp-module-react](./packages/miniapp-module-react/) | React 集成 |
-| [vite-plugin-miniapp](./packages/vite-plugin-miniapp/) | 底层 Vite 构建插件 |
+| 包                                                       | 用途                         |
+| -------------------------------------------------------- | ---------------------------- |
+| [create-miniapp](./packages/create-miniapp/)             | 创建项目，选择框架与可选工具 |
+| [miniapp](./packages/miniapp/)                           | 开发、构建、校验与打包       |
+| [miniapp-types](./packages/miniapp-types/)               | 清单和平台 API 类型          |
+| [miniapp-module-vue](./packages/miniapp-module-vue/)     | Vue 集成                     |
+| [miniapp-module-react](./packages/miniapp-module-react/) | React 集成                   |
+| [vite-plugin-miniapp](./packages/vite-plugin-miniapp/)   | 底层 Vite 构建插件           |
 
 ## 仓库开发
 

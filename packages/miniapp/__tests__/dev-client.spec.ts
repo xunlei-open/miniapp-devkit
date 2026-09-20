@@ -10,14 +10,20 @@ async function client(bodyReady = true) {
   const appendChild = vi.fn()
   const scriptListeners = new Map<string, () => void>()
   const placeholder = {
-    attributes: [], getAttribute: () => 'http://localhost:5173/main.ts', replaceWith: vi.fn(),
+    attributes: [],
+    getAttribute: () => 'http://localhost:5173/main.ts',
+    replaceWith: vi.fn(),
   }
   const document = {
     currentScript: { getAttribute: () => 'http://localhost:5173/app/' },
-    body: bodyReady ? { appendChild } : null as null | { appendChild: typeof appendChild },
+    body: bodyReady ? { appendChild } : (null as null | { appendChild: typeof appendChild }),
     querySelectorAll: () => [placeholder],
-    createElement: vi.fn(() => ({ setAttribute: vi.fn(), style: {}, appendChild: vi.fn(),
-      addEventListener: (name: string, callback: () => void) => scriptListeners.set(name, callback), })),
+    createElement: vi.fn(() => ({
+      setAttribute: vi.fn(),
+      style: {},
+      appendChild: vi.fn(),
+      addEventListener: (name: string, callback: () => void) => scriptListeners.set(name, callback),
+    })),
     addEventListener: (name: string, callback: () => void) => listeners.set(name, callback),
   }
   const reload = vi.fn()
@@ -25,7 +31,11 @@ async function client(bodyReady = true) {
   runInNewContext(await readFile(new URL('../src/dev-client.js', import.meta.url), 'utf8'), {
     document,
     window: { location: { reload }, addEventListener: document.addEventListener },
-    fetch, AbortController, setTimeout, setInterval, clearInterval,
+    fetch,
+    AbortController,
+    setTimeout,
+    setInterval,
+    clearInterval,
   })
   expect(fetch).not.toHaveBeenCalled()
   listeners.get('load')!()
@@ -71,7 +81,12 @@ test('a module error with a reachable server does not start ongoing recovery', a
 test('a stalled background probe is aborted silently and cannot trigger a stale reload', async () => {
   const c = await client()
   let resolve!: (value: { status: number }) => void
-  c.fetch.mockImplementationOnce(() => new Promise(done => { resolve = done }))
+  c.fetch.mockImplementationOnce(
+    () =>
+      new Promise((done) => {
+        resolve = done
+      }),
+  )
   c.scriptListeners.get('load')!()
   const signal = c.fetch.mock.calls[0]![1].signal as AbortSignal
   c.fetch.mockRejectedValue(new TypeError('offline'))
@@ -114,7 +129,12 @@ test('recovers when initially offline and waits for body before showing the noti
 test('aborts stalled probes and ignores their late results', async () => {
   const c = await client()
   let resolve!: (value: { status: number }) => void
-  c.fetch.mockImplementationOnce(() => new Promise(done => { resolve = done }))
+  c.fetch.mockImplementationOnce(
+    () =>
+      new Promise((done) => {
+        resolve = done
+      }),
+  )
   c.scriptListeners.get('error')!()
   await vi.advanceTimersByTimeAsync(0)
   const signal = c.fetch.mock.calls[0]![1].signal as AbortSignal

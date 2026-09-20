@@ -12,7 +12,7 @@
 保留视口声明并允许用户缩放：
 
 ```html
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 ```
 
 布局方式按内容选择；Flex / Grid 的可收缩区域可用 `min-width: 0`、`min-height: 0` 或 `minmax(0, 1fr)`。长文件名、弹窗和宽表格应有可达的换行或滚动方式，固定操作栏不遮挡正文。核心操作兼顾触控与键盘。

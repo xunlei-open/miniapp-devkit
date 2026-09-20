@@ -1,31 +1,153 @@
-:root { font-family: system-ui, sans-serif; color: #182334; background: #f3f6fa; }
-* { box-sizing: border-box; }
-body { margin: 0; min-width: 320px; }
-main { max-width: 920px; margin: auto; padding: 40px 24px; }
-h1 { margin: 8px 0; font-size: clamp(26px, 4vw, 36px); }
-h2 { margin: 0; font-size: 18px; overflow-wrap: anywhere; }
-p { color: #58677a; line-height: 1.6; }
-.eyebrow { font-size: 12px; letter-spacing: .18em; color: #2563eb; font-weight: 700; }
-form, section { padding: 22px; border: 1px solid #dce3ed; border-radius: 14px; background: white; }
-form > label { display: block; margin-bottom: 10px; font-weight: 600; }
-.input-row, footer { display: flex; gap: 16px; align-items: center; justify-content: space-between; }
-.toolbar { display: grid; grid-template-columns: 72px minmax(0, 1fr) 72px; gap: 8px; align-items: center; }
-.toolbar label { display: flex; align-items: center; gap: 12px; white-space: nowrap; }
-.toolbar h2 { text-align: center; }
-input, button { font: inherit; }
-#repository { flex: 1; min-width: 0; padding: 12px; border: 1px solid #b8c5d8; border-radius: 8px; }
-button { padding: 12px 18px; border: 0; border-radius: 8px; color: white; background: #2563eb; cursor: pointer; }
-button:disabled { opacity: .5; cursor: not-allowed; }
-input[type=checkbox] { width: 18px; height: 18px; flex-shrink: 0; accent-color: #2563eb; }
-label { cursor: pointer; }
-ul { list-style: none; padding: 0; margin: 18px 0; }
-li { border-top: 1px solid #edf0f5; }
-li label { display: flex; align-items: center; gap: 12px; padding: 14px 0; overflow-wrap: anywhere; }
-li span { min-width: 0; }
-.asset-name { flex: 1; }
-.asset-size { flex-shrink: 0; white-space: nowrap; color: #58677a; font-size: 13px; font-variant-numeric: tabular-nums; }
-footer { border-top: 1px solid #dce3ed; padding-top: 16px; }
-.hint { font-size: 13px; }
-#status { overflow-wrap: anywhere; }
-:focus-visible { outline: 3px solid #93b4fd; outline-offset: 2px; }
-@media (max-width: 560px) { main { padding: 24px 12px; } .input-row { flex-direction: column; align-items: stretch; } }
+:root {
+  font-family: system-ui, sans-serif;
+  color: #182334;
+  background: #f3f6fa;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  min-width: 320px;
+}
+main {
+  max-width: 920px;
+  margin: auto;
+  padding: 40px 24px;
+}
+h1 {
+  margin: 8px 0;
+  font-size: clamp(26px, 4vw, 36px);
+}
+h2 {
+  margin: 0;
+  font-size: 18px;
+  overflow-wrap: anywhere;
+}
+p {
+  color: #58677a;
+  line-height: 1.6;
+}
+.eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  color: #2563eb;
+  font-weight: 700;
+}
+form,
+section {
+  padding: 22px;
+  border: 1px solid #dce3ed;
+  border-radius: 14px;
+  background: white;
+}
+form > label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+.input-row,
+footer {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+}
+.toolbar {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) 72px;
+  gap: 8px;
+  align-items: center;
+}
+.toolbar label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  white-space: nowrap;
+}
+.toolbar h2 {
+  text-align: center;
+}
+input,
+button {
+  font: inherit;
+}
+#repository {
+  flex: 1;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #b8c5d8;
+  border-radius: 8px;
+}
+button {
+  padding: 12px 18px;
+  border: 0;
+  border-radius: 8px;
+  color: white;
+  background: #2563eb;
+  cursor: pointer;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  accent-color: #2563eb;
+}
+label {
+  cursor: pointer;
+}
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 18px 0;
+}
+li {
+  border-top: 1px solid #edf0f5;
+}
+li label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  overflow-wrap: anywhere;
+}
+li span {
+  min-width: 0;
+}
+.asset-name {
+  flex: 1;
+}
+.asset-size {
+  flex-shrink: 0;
+  white-space: nowrap;
+  color: #58677a;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+footer {
+  border-top: 1px solid #dce3ed;
+  padding-top: 16px;
+}
+.hint {
+  font-size: 13px;
+}
+#status {
+  overflow-wrap: anywhere;
+}
+:focus-visible {
+  outline: 3px solid #93b4fd;
+  outline-offset: 2px;
+}
+@media (max-width: 560px) {
+  main {
+    padding: 24px 12px;
+  }
+  .input-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

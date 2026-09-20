@@ -21,7 +21,9 @@ async function project(withEvents = true) {
   const root = await mkdtemp(join(tmpdir(), 'miniapp-dev-'))
   roots.push(root)
   await mkdir(join(root, 'src/events'), { recursive: true })
-  await writeFile(join(root, 'miniapp.config.mjs'), `export default {
+  await writeFile(
+    join(root, 'miniapp.config.mjs'),
+    `export default {
     vite: {
       server: { port: 0 }, logLevel: 'silent', build: { outDir: 'production' },
       plugins: [(() => {
@@ -35,18 +37,31 @@ async function project(withEvents = true) {
         };
       })()],
     },
-  }`)
-  await writeFile(join(root, 'manifest.json'), JSON.stringify({
-    name: 'dev-test', title: 'Dev Test', version: '1.0.0', icon: 'icon.svg',
-    entry: { type: 'miniapp', url: 'index.html' },
-    ...(withEvents ? { scripts: [{ event: 'onResolve', entry: 'events/onResolve.js' }] } : {}),
-  }))
-  await writeFile(join(root, 'index.html'), '<!doctype html><html><head></head><body><script type="module" src="/main.ts"></script></body></html>')
+  }`,
+  )
+  await writeFile(
+    join(root, 'manifest.json'),
+    JSON.stringify({
+      name: 'dev-test',
+      title: 'Dev Test',
+      version: '1.0.0',
+      icon: 'icon.svg',
+      entry: { type: 'miniapp', url: 'index.html' },
+      ...(withEvents ? { scripts: [{ event: 'onResolve', entry: 'events/onResolve.js' }] } : {}),
+    }),
+  )
+  await writeFile(
+    join(root, 'index.html'),
+    '<!doctype html><html><head></head><body><script type="module" src="/main.ts"></script></body></html>',
+  )
   await writeFile(join(root, 'main.ts'), 'document.body.dataset.loaded = "yes"')
   await writeFile(join(root, 'icon.svg'), '<svg>initial-icon</svg>')
   await writeFile(join(root, 'src/shared.ts'), 'export const value: string = "initial-event"')
   if (withEvents) {
-    await writeFile(join(root, 'src/events/onResolve.ts'), 'import { value } from "../shared"; globalThis.eventValue = value')
+    await writeFile(
+      join(root, 'src/events/onResolve.ts'),
+      'import { value } from "../shared"; globalThis.eventValue = value',
+    )
   }
   return root
 }
@@ -57,7 +72,7 @@ async function eventCode(root: string): Promise<string> {
     const result: string[] = []
     for (const entry of entries) {
       const file = join(dir, entry.name)
-      if (entry.isDirectory()) result.push(...await read(file))
+      if (entry.isDirectory()) result.push(...(await read(file)))
       else result.push(await readFile(file, 'utf8').catch(() => ''))
     }
     return result
@@ -67,7 +82,10 @@ async function eventCode(root: string): Promise<string> {
 
 test('build and package leave an active dev session intact with isolated default outputs', async () => {
   const root = await project()
-  await writeFile(join(root, 'miniapp.config.mjs'), "export default { vite: { server: { port: 0 }, logLevel: 'silent' } }")
+  await writeFile(
+    join(root, 'miniapp.config.mjs'),
+    "export default { vite: { server: { port: 0 }, logLevel: 'silent' } }",
+  )
   const server = await devMiniapp({ root })
   servers.push(server)
   const html = await readFile(join(root, 'dist/index.html'), 'utf8')
@@ -96,7 +114,10 @@ test('build and package leave an active dev session intact with isolated default
   await writeFile(join(root, 'src/shared.ts'), 'export const value = "after-production-build"')
   await expect.poll(() => eventCode(root), { timeout: 10000 }).toContain('after-production-build')
   expect(await readFile(join(built.outDir, 'events/onResolve.js'), 'utf8')).toBe(productionEvent)
-  await writeFile(join(root, 'index.html'), '<html><body>updated-page<script type="module" src="/main.ts"></script></body></html>')
+  await writeFile(
+    join(root, 'index.html'),
+    '<html><body>updated-page<script type="module" src="/main.ts"></script></body></html>',
+  )
   await expect.poll(() => readFile(join(root, 'dist/index.html'), 'utf8'), { timeout: 10000 }).toContain('updated-page')
   expect((await fetch(new URL('/main.ts', server.resolvedUrls!.local[0]!))).status).toBe(200)
 }, 30000)
@@ -104,7 +125,10 @@ test('build and package leave an active dev session intact with isolated default
 test('dev embeds a local connection monitor while production HTML excludes it', async () => {
   const root = await project(false)
   await mkdir(join(root, 'dist'), { recursive: true })
-  await writeFile(join(root, 'dist/miniapp-dev-client.js'), '// Local development bootstrap: must work without the dev server.\noldBootstrap()')
+  await writeFile(
+    join(root, 'dist/miniapp-dev-client.js'),
+    '// Local development bootstrap: must work without the dev server.\noldBootstrap()',
+  )
   const source = await readFile(join(root, 'index.html'), 'utf8')
   const server = await devMiniapp({ root })
   servers.push(server)
@@ -124,8 +148,12 @@ test('dev embeds a local connection monitor while production HTML excludes it', 
 
   const listeners = new Map<string, () => void>()
   const timer = vi.fn()
-  const placeholders = ['/preamble.js', '/main.ts'].map(src => ({
-    attributes: [{ name: 'type', value: 'application/x-miniapp-dev-module' }, { name: 'data-miniapp-dev-src', value: src }, { name: 'data-miniapp-dev-module', value: '' }],
+  const placeholders = ['/preamble.js', '/main.ts'].map((src) => ({
+    attributes: [
+      { name: 'type', value: 'application/x-miniapp-dev-module' },
+      { name: 'data-miniapp-dev-src', value: src },
+      { name: 'data-miniapp-dev-module', value: '' },
+    ],
     getAttribute: () => src,
     replaceWith: vi.fn(),
   }))
@@ -146,15 +174,22 @@ test('dev embeds a local connection monitor while production HTML excludes it', 
   listeners.get('load')!()
   expect(document.createElement).not.toHaveBeenCalled()
   timer.mock.calls[0]![0]()
-  expect(placeholders[0]!.replaceWith).toHaveBeenCalledWith(expect.objectContaining({ type: 'module', src: '/preamble.js' }))
+  expect(placeholders[0]!.replaceWith).toHaveBeenCalledWith(
+    expect.objectContaining({ type: 'module', src: '/preamble.js' }),
+  )
   expect(placeholders[1]!.replaceWith).not.toHaveBeenCalled()
   document.createElement.mock.results[0]!.value.addEventListener.mock.calls[0]![1]()
-  expect(placeholders[1]!.replaceWith).toHaveBeenCalledWith(expect.objectContaining({ type: 'module', src: '/main.ts' }))
+  expect(placeholders[1]!.replaceWith).toHaveBeenCalledWith(
+    expect.objectContaining({ type: 'module', src: '/main.ts' }),
+  )
 
   expect(await readFile(join(root, 'index.html'), 'utf8')).toBe(source)
   await server.close()
   servers.splice(servers.indexOf(server), 1)
-  await writeFile(join(root, 'miniapp.config.mjs'), "export default { vite: { logLevel: 'silent', build: { outDir: 'production' } } }")
+  await writeFile(
+    join(root, 'miniapp.config.mjs'),
+    "export default { vite: { logLevel: 'silent', build: { outDir: 'production' } } }",
+  )
   await buildMiniapp({ root })
   const builtHtml = await readFile(join(root, 'production/index.html'), 'utf8')
   expect(builtHtml).not.toContain('miniapp-dev-')
@@ -177,14 +212,27 @@ test('dev builds event scripts and watches their imports without overwriting the
   await expect.poll(() => eventCode(root), { timeout: 10000 }).toContain('updated-dependency')
   const errors = vi.spyOn(server.config.logger, 'error')
   await writeFile(join(root, 'src/shared.ts'), 'export const value = ;')
-  await expect.poll(() => errors.mock.calls.some(call => String(call[0]).includes('Event build failed')), { timeout: 10000 }).toBe(true)
+  await expect
+    .poll(() => errors.mock.calls.some((call) => String(call[0]).includes('Event build failed')), { timeout: 10000 })
+    .toBe(true)
   expect(await eventCode(root)).toContain('updated-dependency')
   await writeFile(join(root, 'src/shared.ts'), 'export const value = "recovered-event"')
   await expect.poll(() => eventCode(root), { timeout: 10000 }).toContain('recovered-event')
   await writeFile(join(root, 'src/events/onDone.ts'), 'import { value } from "../shared"; globalThis.doneValue = value')
-  await expect.poll(() => readFile(join(root, 'dist/events/onDone.js'), 'utf8').catch(() => ''), { timeout: 10000 }).toContain('doneValue')
+  await expect
+    .poll(() => readFile(join(root, 'dist/events/onDone.js'), 'utf8').catch(() => ''), { timeout: 10000 })
+    .toContain('doneValue')
   await rm(join(root, 'src/events/onDone.ts'))
-  await expect.poll(() => readFile(join(root, 'dist/events/onDone.js'), 'utf8').then(() => true, () => false), { timeout: 10000 }).toBe(false)
+  await expect
+    .poll(
+      () =>
+        readFile(join(root, 'dist/events/onDone.js'), 'utf8').then(
+          () => true,
+          () => false,
+        ),
+      { timeout: 10000 },
+    )
+    .toBe(false)
   expect(await readFile(join(root, 'dist/index.html'), 'utf8')).toBe(html)
   const url = server.resolvedUrls!.local[0]!
   expect((await fetch(new URL('/main.ts', url))).status).toBe(200)
@@ -198,9 +246,20 @@ test('dev synchronizes the declared icon on edits, removal and recreation', asyn
   await writeFile(join(root, 'icon.svg'), '<svg>updated-icon</svg>')
   await expect.poll(() => readFile(join(root, 'dist/icon.svg'), 'utf8'), { timeout: 10000 }).toContain('updated-icon')
   await rm(join(root, 'icon.svg'))
-  await expect.poll(() => readFile(join(root, 'dist/icon.svg')).then(() => true, () => false), { timeout: 10000 }).toBe(false)
+  await expect
+    .poll(
+      () =>
+        readFile(join(root, 'dist/icon.svg')).then(
+          () => true,
+          () => false,
+        ),
+      { timeout: 10000 },
+    )
+    .toBe(false)
   await writeFile(join(root, 'icon.svg'), '<svg>restored-icon</svg>')
-  await expect.poll(() => readFile(join(root, 'dist/icon.svg'), 'utf8').catch(() => ''), { timeout: 10000 }).toContain('restored-icon')
+  await expect
+    .poll(() => readFile(join(root, 'dist/icon.svg'), 'utf8').catch(() => ''), { timeout: 10000 })
+    .toContain('restored-icon')
 }, 30000)
 
 test('dev rejects missing manifest event sources instead of reporting ready', async () => {
@@ -212,26 +271,39 @@ test('dev rejects missing manifest event sources instead of reporting ready', as
 test('event Worker and WASM use default assets paths, rebuild on Worker imports and retain old assets', async () => {
   const root = await project()
   const config = await readFile(join(root, 'miniapp.config.mjs'), 'utf8')
-  await writeFile(join(root, 'miniapp.config.mjs'), config.replace("outDir: 'production'", "outDir: 'production', assetsInlineLimit: 0"))
+  await writeFile(
+    join(root, 'miniapp.config.mjs'),
+    config.replace("outDir: 'production'", "outDir: 'production', assetsInlineLimit: 0"),
+  )
   await writeFile(join(root, 'src/kernel.wasm'), new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0]))
   await writeFile(join(root, 'src/worker-value.ts'), 'export const value = "first-worker"')
-  await writeFile(join(root, 'src/worker.ts'), 'import { value } from "./worker-value"; import wasm from "./kernel.wasm?url"; postMessage({ value, wasm })')
-  await writeFile(join(root, 'src/events/onResolve.ts'), 'globalThis.worker = new Worker(new URL("../worker.ts", import.meta.url), { type: "module" })')
+  await writeFile(
+    join(root, 'src/worker.ts'),
+    'import { value } from "./worker-value"; import wasm from "./kernel.wasm?url"; postMessage({ value, wasm })',
+  )
+  await writeFile(
+    join(root, 'src/events/onResolve.ts'),
+    'globalThis.worker = new Worker(new URL("../worker.ts", import.meta.url), { type: "module" })',
+  )
   const server = await devMiniapp({ root })
   servers.push(server)
   const html = await readFile(join(root, 'dist/index.html'), 'utf8')
   const original = await readFile(join(root, 'dist/events/onResolve.js'), 'utf8')
   const initial = await readdir(join(root, 'dist/assets'))
-  expect(initial.some(name => name.endsWith('.js'))).toBe(true)
-  expect(initial.some(name => name.endsWith('.wasm'))).toBe(true)
+  expect(initial.some((name) => name.endsWith('.js'))).toBe(true)
+  expect(initial.some((name) => name.endsWith('.wasm'))).toBe(true)
   expect(original).toContain('assets/')
   await writeFile(join(root, 'src/worker-value.ts'), 'export const value = "second-worker"')
-  await expect.poll(() => readFile(join(root, 'dist/events/onResolve.js'), 'utf8'), { timeout: 10000 }).not.toBe(original)
+  await expect
+    .poll(() => readFile(join(root, 'dist/events/onResolve.js'), 'utf8'), { timeout: 10000 })
+    .not.toBe(original)
   for (const name of initial) expect(await readFile(join(root, 'dist/assets', name))).toBeDefined()
   expect(await readFile(join(root, 'dist/index.html'), 'utf8')).toBe(html)
   const updated = await readFile(join(root, 'dist/events/onResolve.js'), 'utf8')
   await writeFile(join(root, 'src/kernel.wasm'), new Uint8Array([0, 97, 115, 109, 2, 0, 0, 0]))
-  await expect.poll(() => readFile(join(root, 'dist/events/onResolve.js'), 'utf8'), { timeout: 10000 }).not.toBe(updated)
+  await expect
+    .poll(() => readFile(join(root, 'dist/events/onResolve.js'), 'utf8'), { timeout: 10000 })
+    .not.toBe(updated)
 }, 30000)
 
 test('events-only apps support dev, dependency and icon updates, build and package without HTML', async () => {
@@ -251,13 +323,17 @@ test('events-only apps support dev, dependency and icon updates, build and packa
   await writeFile(join(root, 'src/shared.ts'), 'export const value = "events-only-update"')
   await expect.poll(() => eventCode(root), { timeout: 10000 }).toContain('events-only-update')
   await writeFile(join(root, 'icon.svg'), '<svg>events-only-icon</svg>')
-  await expect.poll(() => readFile(join(root, 'dist/icon.svg'), 'utf8'), { timeout: 10000 }).toContain('events-only-icon')
+  await expect
+    .poll(() => readFile(join(root, 'dist/icon.svg'), 'utf8'), { timeout: 10000 })
+    .toContain('events-only-icon')
   await server.close()
   servers.splice(servers.indexOf(server), 1)
 
   const { outDir } = await buildMiniapp({ root })
   expect((await validateMiniappDirectory(outDir)).files.sort()).toEqual([
-    'events/onResolve.js', 'icon.svg', 'manifest.json',
+    'events/onResolve.js',
+    'icon.svg',
+    'manifest.json',
   ])
   const { outFile } = await packageMiniapp({ root })
   const zip = await readFile(outFile)

@@ -10,17 +10,17 @@ import { buildMiniapp } from '../src/vite.js'
 const directories: string[] = []
 
 function zipEntries(file: string) {
-  return execFileSync(process.platform === 'win32' ? 'tar' : 'unzip',
+  return execFileSync(
+    process.platform === 'win32' ? 'tar' : 'unzip',
     process.platform === 'win32' ? ['-tf', file] : ['-Z1', file],
-    { encoding: 'utf8' }).trim().split(/\r?\n/)
+    { encoding: 'utf8' },
+  )
+    .trim()
+    .split(/\r?\n/)
 }
 
 afterEach(async () => {
-  await Promise.all(
-    directories.splice(0).map((directory) =>
-      rm(directory, { recursive: true, force: true }),
-    ),
-  )
+  await Promise.all(directories.splice(0).map((directory) => rm(directory, { recursive: true, force: true })))
 })
 
 async function createProject(): Promise<string> {
@@ -64,9 +64,7 @@ test('builds with nested Vite config and validates the output', async () => {
   expect(validation.files).toContain('manifest.json')
   expect(validation.files).toContain('index.html')
   expect(validation.files).toContain('icon.png')
-  expect(await readFile(join(result.outDir, 'manifest.json'), 'utf8')).toContain(
-    'test-miniapp',
-  )
+  expect(await readFile(join(result.outDir, 'manifest.json'), 'utf8')).toContain('test-miniapp')
 })
 
 test('builds and packages files at the ZIP root', async () => {
@@ -89,7 +87,7 @@ test('default packaging leaves only the ZIP in output and supports repeat builds
     expect(result.outDir).toBe(join(root, 'output'))
     expect(await readdir(result.outDir)).toEqual(['test-miniapp-1.2.3.zip'])
     expect(zipEntries(result.outFile)).toEqual(expect.arrayContaining(['manifest.json', 'index.html', 'icon.png']))
-    expect(zipEntries(result.outFile).some(name => name.endsWith('.zip') || name.startsWith('output/'))).toBe(false)
+    expect(zipEntries(result.outFile).some((name) => name.endsWith('.zip') || name.startsWith('output/'))).toBe(false)
   }
 })
 
@@ -101,7 +99,7 @@ test('no-build packaging retains inputs and does not include its previous ZIP', 
     const result = await packageMiniapp({ root, build: false })
     expect(await readFile(join(outDir, 'manifest.json'), 'utf8')).toContain('test-miniapp')
     expect(zipEntries(result.outFile)).toContain('index.html')
-    expect(zipEntries(result.outFile).some(name => name.endsWith('.zip'))).toBe(false)
+    expect(zipEntries(result.outFile).some((name) => name.endsWith('.zip'))).toBe(false)
   }
 })
 
@@ -113,7 +111,7 @@ test('a failed ZIP publication retains the built files', async () => {
   await expect(packageMiniapp({ root, outFile: destination })).rejects.toThrow()
   expect((await validateMiniappDirectory(join(root, 'output'))).files).toContain('index.html')
   expect(await readFile(join(destination, 'keep.txt'), 'utf8')).toBe('existing directory')
-  expect((await readdir(root)).some(name => name.startsWith('.miniapp-package-'))).toBe(false)
+  expect((await readdir(root)).some((name) => name.startsWith('.miniapp-package-'))).toBe(false)
 })
 
 test('rejects missing manifest entries and sourcemaps', async () => {
@@ -129,16 +127,9 @@ test('rejects missing manifest entries and sourcemaps', async () => {
     }),
   )
 
-  await expect(validateMiniappDirectory(directory)).rejects.toThrow(
-    'points to a missing file',
-  )
+  await expect(validateMiniappDirectory(directory)).rejects.toThrow('points to a missing file')
 
-  await Promise.all([
-    writeFile(join(directory, 'index.html'), '<!doctype html>'),
-    mkdir(join(directory, 'assets')),
-  ])
+  await Promise.all([writeFile(join(directory, 'index.html'), '<!doctype html>'), mkdir(join(directory, 'assets'))])
   await writeFile(join(directory, 'assets/index.js.map'), '{}')
-  await expect(validateMiniappDirectory(directory)).rejects.toThrow(
-    'must not contain sourcemaps',
-  )
+  await expect(validateMiniappDirectory(directory)).rejects.toThrow('must not contain sourcemaps')
 })

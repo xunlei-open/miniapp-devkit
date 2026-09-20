@@ -10,8 +10,13 @@ let previousOverflow = ''
 function backdropClick(event: MouseEvent) {
   if (event.target !== dialog.value) return
   const bounds = dialog.value.getBoundingClientRect()
-  if (event.clientX < bounds.left || event.clientX > bounds.right
-    || event.clientY < bounds.top || event.clientY > bounds.bottom) emit('close')
+  if (
+    event.clientX < bounds.left ||
+    event.clientX > bounds.right ||
+    event.clientY < bounds.top ||
+    event.clientY > bounds.bottom
+  )
+    emit('close')
 }
 
 onMounted(() => {
@@ -37,9 +42,7 @@ onBeforeUnmount(() => {
       @close="emit('close')"
       @click="backdropClick"
     >
-      <video ref="video" :key="url" :src="url" controls autoplay playsinline>
-        当前环境不支持 video 标签。
-      </video>
+      <video ref="video" :key="url" :src="url" controls autoplay playsinline>当前环境不支持 video 标签。</video>
     </dialog>
   </Teleport>
 </template>

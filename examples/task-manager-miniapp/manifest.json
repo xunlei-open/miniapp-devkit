@@ -1,23 +1,17 @@
 {
-	"manifest_version": 1,
-	"name": "task-manager-miniapp",
-	"title": "轻量任务管理",
-	"description": "创建、查看、删除迅雷下载任务并预览已完成的视频文件",
-	"version": "1.0.0",
-	"icon": "icon.png",
-	"entry": {
-		"type": "miniapp",
-		"url": "index.html"
-	},
-	"window": {
-		"width": 1080,
-		"height": 760
-	},
-	"permissions": [
-		"tasks.create",
-		"tasks.list",
-		"tasks.detail",
-		"tasks.delete",
-		"tasks.file.access"
-	]
+  "manifest_version": 1,
+  "name": "task-manager-miniapp",
+  "title": "轻量任务管理",
+  "description": "创建、查看、删除迅雷下载任务并预览已完成的视频文件",
+  "version": "1.0.0",
+  "icon": "icon.png",
+  "entry": {
+    "type": "miniapp",
+    "url": "index.html"
+  },
+  "window": {
+    "width": 1080,
+    "height": 760
+  },
+  "permissions": ["tasks.create", "tasks.list", "tasks.detail", "tasks.delete", "tasks.file.access"]
 }

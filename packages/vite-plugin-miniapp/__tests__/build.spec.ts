@@ -10,21 +10,14 @@ const temporaryDirectories: string[] = []
 
 afterEach(async () => {
   vi.restoreAllMocks()
-  await Promise.all(
-    temporaryDirectories.splice(0).map((directory) =>
-      rm(directory, { recursive: true, force: true }),
-    ),
-  )
+  await Promise.all(temporaryDirectories.splice(0).map((directory) => rm(directory, { recursive: true, force: true })))
 })
 
 test('builds event entries and copies manifest assets', async () => {
   const root = await mkdtemp(join(tmpdir(), 'vite-plugin-miniapp-'))
   temporaryDirectories.push(root)
 
-  await writeFile(
-    join(root, 'index.html'),
-    '<!doctype html><script type="module" src="/src/main.ts"></script>',
-  )
+  await writeFile(join(root, 'index.html'), '<!doctype html><script type="module" src="/src/main.ts"></script>')
   await writeFile(join(root, 'icon.svg'), '<svg xmlns="http://www.w3.org/2000/svg"/>')
   await writeFile(
     join(root, 'manifest.json'),
@@ -113,7 +106,5 @@ test('does not copy manifest assets from outside the project', async () => {
 
   expect(existsSync(join(root, 'outside.png'))).toBe(false)
   expect(existsSync(join(root, 'dist/outside.png'))).toBe(false)
-  expect(warn).toHaveBeenCalledWith(
-    '[vite-plugin-miniapp] static asset is outside project root: ../outside.png',
-  )
+  expect(warn).toHaveBeenCalledWith('[vite-plugin-miniapp] static asset is outside project root: ../outside.png')
 })

@@ -7,11 +7,7 @@ import { loadMiniappConfig } from '../src/config.js'
 const directories: string[] = []
 
 afterEach(async () => {
-  await Promise.all(
-    directories.splice(0).map((directory) =>
-      rm(directory, { recursive: true, force: true }),
-    ),
-  )
+  await Promise.all(directories.splice(0).map((directory) => rm(directory, { recursive: true, force: true })))
 })
 
 async function createRoot(): Promise<string> {
@@ -75,10 +71,13 @@ test('requires exactly one miniapp config file', async () => {
 
 test('keeps custom development and production output configuration independent', async () => {
   const root = await createRoot()
-  await writeFile(join(root, 'miniapp.config.mjs'), `export default {
+  await writeFile(
+    join(root, 'miniapp.config.mjs'),
+    `export default {
     dev: { outDir: 'local-dev' },
     vite: { build: { outDir: 'artifacts/app' } },
-  }`)
+  }`,
+  )
   for (const command of ['serve', 'build'] as const) {
     const config = await loadMiniappConfig(root, { command, mode: 'development' })
     expect(config.devOutDir).toBe('local-dev')
@@ -87,29 +86,46 @@ test('keeps custom development and production output configuration independent',
   }
 })
 
-test.each(['dist', 'dist/production', '.'])('rejects a build output overlapping the dev directory: %s', async outDir => {
-  const root = await createRoot()
-  await writeFile(join(root, 'miniapp.config.mjs'), `export default { vite: { build: { outDir: ${JSON.stringify(outDir)} } } }`)
-  await expect(loadMiniappConfig(root, { command: 'build', mode: 'production' })).rejects.toThrow('must be separate directories')
-})
+test.each(['dist', 'dist/production', '.'])(
+  'rejects a build output overlapping the dev directory: %s',
+  async (outDir) => {
+    const root = await createRoot()
+    await writeFile(
+      join(root, 'miniapp.config.mjs'),
+      `export default { vite: { build: { outDir: ${JSON.stringify(outDir)} } } }`,
+    )
+    await expect(loadMiniappConfig(root, { command: 'build', mode: 'production' })).rejects.toThrow(
+      'must be separate directories',
+    )
+  },
+)
 
 test('resolves modules from the project and lets user config override module defaults', async () => {
   const root = await createRoot()
   const moduleDir = join(root, 'node_modules/test-miniapp-module')
   await mkdir(moduleDir, { recursive: true })
-  await writeFile(join(moduleDir, 'package.json'), JSON.stringify({ name: 'test-miniapp-module', type: 'module', exports: './index.mjs' }))
-  await writeFile(join(moduleDir, 'index.mjs'), `export default {
+  await writeFile(
+    join(moduleDir, 'package.json'),
+    JSON.stringify({ name: 'test-miniapp-module', type: 'module', exports: './index.mjs' }),
+  )
+  await writeFile(
+    join(moduleDir, 'index.mjs'),
+    `export default {
     name: 'test-miniapp-module',
     vite: async ({ mode }) => ({
       plugins: [{ name: 'framework-plugin' }],
       define: { MODULE_MODE: JSON.stringify(mode) },
       build: { target: 'es2020' },
     }),
-  }`)
-  await writeFile(join(root, 'miniapp.config.mjs'), `export default {
+  }`,
+  )
+  await writeFile(
+    join(root, 'miniapp.config.mjs'),
+    `export default {
     modules: ['test-miniapp-module', 'test-miniapp-module'],
     vite: { plugins: [{ name: 'project-plugin' }], build: { target: 'es2022' } },
-  }`)
+  }`,
+  )
   const config = await loadMiniappConfig(root, { command: 'build', mode: 'testing' })
   expect(config.vite.plugins).toEqual([{ name: 'framework-plugin' }, { name: 'project-plugin' }])
   expect(config.vite.define).toEqual({ MODULE_MODE: '"testing"' })
@@ -119,5 +135,7 @@ test('resolves modules from the project and lets user config override module def
 test('reports the module name when a configured module cannot be loaded', async () => {
   const root = await createRoot()
   await writeFile(join(root, 'miniapp.config.mjs'), `export default { modules: ['missing-miniapp-module'] }`)
-  await expect(loadMiniappConfig(root, { command: 'serve', mode: 'development' })).rejects.toThrow('Failed to load miniapp module "missing-miniapp-module"')
+  await expect(loadMiniappConfig(root, { command: 'serve', mode: 'development' })).rejects.toThrow(
+    'Failed to load miniapp module "missing-miniapp-module"',
+  )
 })

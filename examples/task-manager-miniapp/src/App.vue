@@ -44,13 +44,9 @@ async function loadTasks(options: { silent?: boolean } = {}) {
       limit: 20,
       sort: 'createdAtDesc',
     })
-    const details = await Promise.allSettled(
-      list.ids.map((id) => xunlei.tasks.detail({ id })),
-    )
+    const details = await Promise.allSettled(list.ids.map((id) => xunlei.tasks.detail({ id })))
 
-    tasks.value = details.flatMap((detail) =>
-      detail.status === 'fulfilled' ? [detail.value] : [],
-    )
+    tasks.value = details.flatMap((detail) => (detail.status === 'fulfilled' ? [detail.value] : []))
     total.value = list.total
   } catch (error) {
     message.value = getErrorMessage(error)
@@ -105,8 +101,11 @@ async function deleteTask(task: TaskDetailResult) {
         ? '任务及其本地文件已删除。'
         : '任务已删除，下载文件已保留。'
       : '任务不存在或已经删除。'
-    if (player.value && (player.value.taskId === task.id ||
-      (task.type === 'group' && task.children.some(child => child.id === player.value?.taskId)))) {
+    if (
+      player.value &&
+      (player.value.taskId === task.id ||
+        (task.type === 'group' && task.children.some((child) => child.id === player.value?.taskId)))
+    ) {
       player.value = undefined
     }
     delete deleteFilesByTask.value[task.id]
@@ -242,12 +241,7 @@ onUnmounted(() => {
                 <input v-model="deleteFilesByTask[task.id]" type="checkbox" />
                 同时删除本地文件
               </label>
-              <button
-                class="danger-button"
-                type="button"
-                :disabled="deletingId === task.id"
-                @click="deleteTask(task)"
-              >
+              <button class="danger-button" type="button" :disabled="deletingId === task.id" @click="deleteTask(task)">
                 {{ deletingId === task.id ? '删除中…' : '删除任务' }}
               </button>
             </div>

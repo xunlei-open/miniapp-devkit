@@ -19,9 +19,7 @@ export interface MiniappPackageConfig {
 }
 
 /** 构建工具配置，支持配置对象或根据运行环境同步、异步生成配置的函数。 */
-export type MiniappViteConfig =
-  | UserConfig
-  | ((env: ConfigEnv) => MaybePromise<UserConfig>)
+export type MiniappViteConfig = UserConfig | ((env: ConfigEnv) => MaybePromise<UserConfig>)
 
 export interface MiniappUserConfig {
   /** 开发产物配置；独立于 vite.build.outDir。 */

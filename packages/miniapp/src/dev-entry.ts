@@ -14,12 +14,7 @@ function localPath(root: string, file: string): string {
   return target
 }
 
-export function localDevEntry(
-  root: string,
-  outDir: string,
-  manifestFile: string,
-  manifest: MiniappManifest,
-) {
+export function localDevEntry(root: string, outDir: string, manifestFile: string, manifest: MiniappManifest) {
   const entry = manifest.entry?.url
   if (manifest.entry && (manifest.entry.type ?? 'miniapp') !== 'miniapp') {
     throw new Error('Local HMR requires a miniapp HTML entry')
@@ -31,7 +26,10 @@ export function localDevEntry(
   let iconUpdates = Promise.resolve()
   let stopped = false
   const rootFromOutput = relative(outDir, root)
-  if (!rootFromOutput || (!rootFromOutput.startsWith(`..${sep}`) && rootFromOutput !== '..' && !isAbsolute(rootFromOutput))) {
+  if (
+    !rootFromOutput ||
+    (!rootFromOutput.startsWith(`..${sep}`) && rootFromOutput !== '..' && !isAbsolute(rootFromOutput))
+  ) {
     throw new Error('Development output must not be the project root or its parent')
   }
   let server: ViteDevServer
@@ -41,9 +39,9 @@ export function localDevEntry(
   let clientCode: Promise<string> | undefined
 
   function loadClientCode() {
-    return clientCode ??= readFile(new URL('./dev-client.js', import.meta.url), 'utf8')
-      .then(code => minify('dev-client.js', code))
-      .then(result => result.code.trim().replace(/<\/script/gi, '<\\/script'))
+    return (clientCode ??= readFile(new URL('./dev-client.js', import.meta.url), 'utf8')
+      .then((code) => minify('dev-client.js', code))
+      .then((result) => result.code.trim().replace(/<\/script/gi, '<\\/script')))
   }
 
   async function copyIcon() {
@@ -55,14 +53,20 @@ export function localDevEntry(
   function onIconChange(event: string, file: string) {
     if (stopped || !iconSource || resolve(file) !== iconSource) return
     if (!['add', 'change', 'unlink'].includes(event)) return
-    iconUpdates = iconUpdates.then(async () => {
-      if (stopped) return
-      if (event === 'unlink') await rm(iconOutput!, { force: true })
-      else await copyIcon()
-      server.config.logger.info('[miniapp] Manifest icon updated. Reload the application in the host to refresh its icon.')
-    }).catch(error => {
-      server.config.logger.error(`[miniapp] Icon sync failed: ${error instanceof Error ? error.message : String(error)}`)
-    })
+    iconUpdates = iconUpdates
+      .then(async () => {
+        if (stopped) return
+        if (event === 'unlink') await rm(iconOutput!, { force: true })
+        else await copyIcon()
+        server.config.logger.info(
+          '[miniapp] Manifest icon updated. Reload the application in the host to refresh its icon.',
+        )
+      })
+      .catch((error) => {
+        server.config.logger.error(
+          `[miniapp] Icon sync failed: ${error instanceof Error ? error.message : String(error)}`,
+        )
+      })
   }
 
   function rewriteEntry(html: string, bootstrap: string): string {
@@ -71,17 +75,22 @@ export function localDevEntry(
     function visit(node: DefaultTreeAdapterMap['node']) {
       if ('tagName' in node) {
         for (const attr of node.attrs) {
-          if (attr.name === 'src' || attr.name === 'poster' ||
+          if (
+            attr.name === 'src' ||
+            attr.name === 'poster' ||
             (attr.name === 'href' && ['link', 'image', 'use'].includes(node.tagName)) ||
-            (attr.name === 'data' && node.tagName === 'object')) {
+            (attr.name === 'data' && node.tagName === 'object')
+          ) {
             if (attr.value && !attr.value.startsWith('#')) attr.value = new URL(attr.value, entryUrl).href
           }
         }
-        if (node.tagName === 'script' &&
-          node.attrs.some(attr => attr.name === 'type' && attr.value.toLowerCase() === 'module') &&
-          !node.attrs.some(attr => attr.name === 'src')) {
+        if (
+          node.tagName === 'script' &&
+          node.attrs.some((attr) => attr.name === 'type' && attr.value.toLowerCase() === 'module') &&
+          !node.attrs.some((attr) => attr.name === 'src')
+        ) {
           // Framework-injected preambles must resolve imports against HTTP, not file://.
-          const code = node.childNodes.map(child => 'value' in child ? child.value : '').join('')
+          const code = node.childNodes.map((child) => ('value' in child ? child.value : '')).join('')
           const hash = createHash('sha256').update(code).digest('hex').slice(0, 16)
           const url = new URL(`./@miniapp-dev/inline-${modules.size}-${hash}.js`, entryUrl)
           const id = url.pathname.slice(server.config.base.length - 1)
@@ -89,22 +98,31 @@ export function localDevEntry(
           node.childNodes = []
           node.attrs.push({ name: 'src', value: url.href })
         }
-        if (node.tagName === 'script' &&
-          node.attrs.some(attr => attr.name === 'type' && attr.value.toLowerCase() === 'module') &&
-          node.attrs.some(attr => attr.name === 'src' && new URL(attr.value, entryUrl).origin === new URL(entryUrl!).origin)) {
+        if (
+          node.tagName === 'script' &&
+          node.attrs.some((attr) => attr.name === 'type' && attr.value.toLowerCase() === 'module') &&
+          node.attrs.some(
+            (attr) => attr.name === 'src' && new URL(attr.value, entryUrl).origin === new URL(entryUrl!).origin,
+          )
+        ) {
           node.attrs.push({ name: 'data-miniapp-dev-module', value: '' })
           // Inert placeholders do not hold DOMContentLoaded or window.load open.
-          node.attrs.find(attr => attr.name === 'type')!.value = 'application/x-miniapp-dev-module'
-          node.attrs.find(attr => attr.name === 'src')!.name = 'data-miniapp-dev-src'
+          node.attrs.find((attr) => attr.name === 'type')!.value = 'application/x-miniapp-dev-module'
+          node.attrs.find((attr) => attr.name === 'src')!.name = 'data-miniapp-dev-src'
         }
       }
       if ('childNodes' in node) node.childNodes.forEach(visit)
       if ('content' in node) visit(node.content as DefaultTreeAdapterMap['documentFragment'])
     }
     visit(document)
-    const htmlNode = document.childNodes.find(node => 'tagName' in node && node.tagName === 'html') as DefaultTreeAdapterMap['element']
-    const head = htmlNode.childNodes.find(node => 'tagName' in node && node.tagName === 'head') as DefaultTreeAdapterMap['element']
-    const script = parseFragment(`<script data-miniapp-dev-load-error>${bootstrap}</script>`).childNodes[0] as DefaultTreeAdapterMap['element']
+    const htmlNode = document.childNodes.find(
+      (node) => 'tagName' in node && node.tagName === 'html',
+    ) as DefaultTreeAdapterMap['element']
+    const head = htmlNode.childNodes.find(
+      (node) => 'tagName' in node && node.tagName === 'head',
+    ) as DefaultTreeAdapterMap['element']
+    const script = parseFragment(`<script data-miniapp-dev-load-error>${bootstrap}</script>`)
+      .childNodes[0] as DefaultTreeAdapterMap['element']
     script.attrs.push({ name: 'data-miniapp-dev-probe', value: new URL(server.config.base, entryUrl).href })
     script.parentNode = head
     head.childNodes.unshift(script)
@@ -117,7 +135,10 @@ export function localDevEntry(
     if (!source || !output) return
     const html = await server.transformIndexHtml(pagePath, await readFile(source, 'utf8'))
     await mkdir(dirname(output), { recursive: true })
-    await writeFile(output, `<!-- miniapp-dev-entry: run build before packaging -->\n${rewriteEntry(html, await loadClientCode())}`)
+    await writeFile(
+      output,
+      `<!-- miniapp-dev-entry: run build before packaging -->\n${rewriteEntry(html, await loadClientCode())}`,
+    )
     // Remove only bootstrap files generated by the previous external-script version.
     const oldClient = resolve(dirname(output), 'miniapp-dev-client.js')
     const oldCode = await readFile(oldClient, 'utf8').catch(() => '')

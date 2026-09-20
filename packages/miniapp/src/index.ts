@@ -12,9 +12,5 @@ export type {
   PackageMiniappOptions,
   ResolvedMiniappConfig,
 } from './types.js'
-export {
-  readMiniappManifest,
-  validateMiniappDirectory,
-  validateSourceManifest,
-} from './validate.js'
+export { readMiniappManifest, validateMiniappDirectory, validateSourceManifest } from './validate.js'
 export { buildMiniapp, devMiniapp, validateBuiltMiniapp } from './vite.js'

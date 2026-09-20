@@ -7,13 +7,13 @@
 ```ts
 async function createDownload(url: string) {
   if (typeof xunlei === 'undefined') {
-    throw new Error('请在迅雷中使用下载功能');
+    throw new Error('请在迅雷中使用下载功能')
   }
-  const value = url.trim();
-  if (!value) throw new Error('请输入下载地址');
-  const task = await xunlei.tasks.create({ req: { url: value } });
-  xunlei.logger.info('任务已创建', task.id);
-  return task;
+  const value = url.trim()
+  if (!value) throw new Error('请输入下载地址')
+  const task = await xunlei.tasks.create({ req: { url: value } })
+  xunlei.logger.info('任务已创建', task.id)
+  return task
 }
 ```
 
@@ -21,21 +21,21 @@ async function createDownload(url: string) {
 
 ## 权限与接口
 
-| 能力 | 权限 | 关键行为 |
-| --- | --- | --- |
-| `tasks.create({ req, opts? })` | `tasks.create` | 返回单任务 |
-| `tasks.createGroup({ name, tasks, opts? })` | `tasks.create` | 共享下载目录；name 是单个目录名；tasks 中每项为 `{ req, opts? }` |
-| `tasks.list({ offset?, limit?, status?, sort? })` | `tasks.list` | 返回 `{ ids, total }`，不是任务数组 |
-| `tasks.detail({ id })` | `tasks.detail` | 返回 `Task \| TaskGroup` |
-| `tasks.update({ id, req: { labels } })` | `tasks.update` | 当前只支持更新标签 |
-| `tasks.delete({ id, deleteFiles? })` | `tasks.delete` | deleteFiles 默认 false |
-| `tasks.file.access({ taskId, fileIndex })` | `tasks.file.access` | 返回只读临时 URL |
-| `runtime.blob.*` | `blob` | 用于下载时还需 tasks.create |
-| `runtime.webview.*` | `webview` | 未声明时 isAvailable 返回 false |
-| `host.env.*` | 无 | 页面和事件脚本均可用 |
-| `host.ui.*` | 无 | 仅页面可用，事件脚本不注入 |
-| 直接网络请求 | `network` | 同时需要 network.urls 匹配 |
-| storage / settings / info / logger / 事件注册 | 无 | 仍受所在运行环境限制 |
+| 能力                                              | 权限                | 关键行为                                                         |
+| ------------------------------------------------- | ------------------- | ---------------------------------------------------------------- |
+| `tasks.create({ req, opts? })`                    | `tasks.create`      | 返回单任务                                                       |
+| `tasks.createGroup({ name, tasks, opts? })`       | `tasks.create`      | 共享下载目录；name 是单个目录名；tasks 中每项为 `{ req, opts? }` |
+| `tasks.list({ offset?, limit?, status?, sort? })` | `tasks.list`        | 返回 `{ ids, total }`，不是任务数组                              |
+| `tasks.detail({ id })`                            | `tasks.detail`      | 返回 `Task \| TaskGroup`                                         |
+| `tasks.update({ id, req: { labels } })`           | `tasks.update`      | 当前只支持更新标签                                               |
+| `tasks.delete({ id, deleteFiles? })`              | `tasks.delete`      | deleteFiles 默认 false                                           |
+| `tasks.file.access({ taskId, fileIndex })`        | `tasks.file.access` | 返回只读临时 URL                                                 |
+| `runtime.blob.*`                                  | `blob`              | 用于下载时还需 tasks.create                                      |
+| `runtime.webview.*`                               | `webview`           | 未声明时 isAvailable 返回 false                                  |
+| `host.env.*`                                      | 无                  | 页面和事件脚本均可用                                             |
+| `host.ui.*`                                       | 无                  | 仅页面可用，事件脚本不注入                                       |
+| 直接网络请求                                      | `network`           | 同时需要 network.urls 匹配                                       |
+| storage / settings / info / logger / 事件注册     | 无                  | 仍受所在运行环境限制                                             |
 
 权限逐项声明，不支持 `tasks` 或 `tasks.*` 通配。异步宿主 API 使用 await；`info`、`settings` 读取与 `logger.*` 同步。平台错误按 `{ code, message, details }` 处理，权限错误先查声明和是否重新加载清单。
 
@@ -73,19 +73,16 @@ async function createDownload(url: string) {
 
 ```ts
 // 跟随宿主外观。
-const [color, mode] = await Promise.all([
-  xunlei.host.env.themeColor(),
-  xunlei.host.env.themeMode(),
-]);
+const [color, mode] = await Promise.all([xunlei.host.env.themeColor(), xunlei.host.env.themeMode()])
 
 // 选目录、建任务、跳转高亮。
-const dir = await xunlei.host.env.defaultDownloadDir();
-const picked = await xunlei.host.ui.pickDirectory({ defaultPath: dir });
+const dir = await xunlei.host.env.defaultDownloadDir()
+const picked = await xunlei.host.ui.pickDirectory({ defaultPath: dir })
 const task = await xunlei.tasks.create({
   req: { url },
   opts: { path: picked?.path ?? dir },
-});
-await xunlei.host.ui.openTaskList({ taskId: task.id });
+})
+await xunlei.host.ui.openTaskList({ taskId: task.id })
 ```
 
 `pickDirectory` 用户取消时返回 `null`，不抛错，不要用 try/catch 区分取消；错误处理只留给真错误。`themeMode` 在宿主设置为跟随系统时返回解析后的 `light` 或 `dark`，不返回 auto。`openTaskList` 的 `taskId` 不存在或列表中不可见时仅跳转、不高亮，不报错。
@@ -93,9 +90,9 @@ await xunlei.host.ui.openTaskList({ taskId: task.id });
 ## 导出 Blob
 
 ```ts
-const data = new Blob(['示例内容'], { type: 'text/plain;charset=utf-8' });
-const url = await xunlei.runtime.blob.createObjectURL(data);
-await xunlei.tasks.create({ req: { url }, opts: { name: 'export.txt' } });
+const data = new Blob(['示例内容'], { type: 'text/plain;charset=utf-8' })
+const url = await xunlei.runtime.blob.createObjectURL(data)
+await xunlei.tasks.create({ req: { url }, opts: { name: 'export.txt' } })
 ```
 
 不要在 tasks.create 返回后立即 revoke，下载器可能尚未读取。URL 不持久化，运行环境销毁、停用或空闲可能回收。大文件按需用 opener；每次调用返回新的流，开启 Range 时提供总大小并正确处理区间。
@@ -107,17 +104,17 @@ await xunlei.tasks.create({ req: { url }, opts: { name: 'export.txt' } });
 ```ts
 async function readPageTitle(url: string) {
   if (!(await xunlei.runtime.webview.isAvailable())) {
-    throw new Error('辅助 WebView 不可用，请检查权限和客户端支持');
+    throw new Error('辅助 WebView 不可用，请检查权限和客户端支持')
   }
-  const page = await xunlei.runtime.webview.open({ headless: true });
+  const page = await xunlei.runtime.webview.open({ headless: true })
   try {
-    await page.goto(url, { waitUntil: 'domcontentloaded', timeoutMs: 10_000 });
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeoutMs: 10_000 })
     if (!(await page.waitForSelector('title', { timeoutMs: 5_000 }))) {
-      throw new Error('等待页面超时');
+      throw new Error('等待页面超时')
     }
-    return await page.execute<string>(() => document.title);
+    return await page.execute<string>(() => document.title)
   } finally {
-    await page.close();
+    await page.close()
   }
 }
 ```

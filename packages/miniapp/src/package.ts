@@ -4,17 +4,19 @@ import { basename, dirname, isAbsolute, relative, resolve, sep } from 'node:path
 import { pipeline } from 'node:stream/promises'
 import yazl from 'yazl'
 import { loadMiniappConfig } from './config.js'
-import type {
-  PackageMiniappOptions,
-  ResolvedMiniappConfig,
-} from './types.js'
+import type { PackageMiniappOptions, ResolvedMiniappConfig } from './types.js'
 import { validateMiniappDirectory } from './validate.js'
 import { buildMiniapp, resolveOutputDirectory } from './vite.js'
 
 const ZIP_DATE = new Date('1980-01-01T00:00:00.000Z')
 
 function safeFilePart(value: string): string {
-  return value.trim().replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-+|-+$/g, '') || 'miniapp'
+  return (
+    value
+      .trim()
+      .replace(/[^a-zA-Z0-9._-]+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'miniapp'
+  )
 }
 
 function resolveArchivePath(
@@ -29,9 +31,7 @@ function resolveArchivePath(
     return isAbsolute(explicitPath) ? explicitPath : resolve(config.root, explicitPath)
   }
 
-  const fileName =
-    config.packageFileName ??
-    `${safeFilePart(manifest.name)}-${safeFilePart(manifest.version)}.zip`
+  const fileName = config.packageFileName ?? `${safeFilePart(manifest.name)}-${safeFilePart(manifest.version)}.zip`
   if (!fileName.toLowerCase().endsWith('.zip')) {
     throw new Error('package.fileName must end with .zip')
   }
@@ -41,11 +41,7 @@ function resolveArchivePath(
   return resolve(config.root, config.packageOutDir, fileName)
 }
 
-async function writeZip(
-  directory: string,
-  files: string[],
-  outFile: string,
-): Promise<void> {
+async function writeZip(directory: string, files: string[], outFile: string): Promise<void> {
   await mkdir(dirname(outFile), { recursive: true })
   const staging = await mkdtemp(resolve(dirname(outFile), '.miniapp-package-'))
   const temporaryArchive = resolve(staging, 'package.zip')
@@ -88,7 +84,7 @@ async function removeBuildFiles(directory: string, files: string[]) {
   }
   // Remove only empty directories; preserve the ZIP and any files added after validation.
   for (const path of [...directories].sort((a, b) => b.length - a.length)) {
-    await rmdir(path).catch(error => {
+    await rmdir(path).catch((error) => {
       if (!['ENOENT', 'ENOTEMPTY', 'EEXIST'].includes(error.code)) throw error
     })
   }
@@ -117,12 +113,14 @@ export async function packageMiniapp(
   const validated = await validateMiniappDirectory(outDir)
   const outFile = resolveArchivePath(config, validated.manifest, options.outFile)
   const archiveRelativeToDev = relative(resolve(config.root, config.devOutDir), outFile)
-  if (archiveRelativeToDev === '' ||
-    (archiveRelativeToDev !== '..' && !archiveRelativeToDev.startsWith(`..${sep}`) && !isAbsolute(archiveRelativeToDev))) {
+  if (
+    archiveRelativeToDev === '' ||
+    (archiveRelativeToDev !== '..' && !archiveRelativeToDev.startsWith(`..${sep}`) && !isAbsolute(archiveRelativeToDev))
+  ) {
     throw new Error('Package output must be outside the development output directory')
   }
   // Repackaging with --no-build must not include the previous destination ZIP itself.
-  const files = validated.files.filter(file => relative(resolve(outDir, file), outFile) !== '')
+  const files = validated.files.filter((file) => relative(resolve(outDir, file), outFile) !== '')
   await writeZip(outDir, files, outFile)
   if (options.build ?? true) await removeBuildFiles(outDir, files)
   return { outFile, outDir }

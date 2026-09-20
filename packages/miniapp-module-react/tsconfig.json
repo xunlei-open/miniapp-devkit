@@ -1,12 +1,7 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "types": [
-      "node"
-    ]
+    "types": ["node"]
   },
-  "include": [
-    "src/**/*.ts",
-    "tsdown.config.ts"
-  ]
+  "include": ["src/**/*.ts", "tsdown.config.ts"]
 }

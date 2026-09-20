@@ -6,11 +6,11 @@ Vue 3 + TypeScript 示例，支持选择或拖入本地图片、调整裁剪区�
 
 ## 涉及的 API
 
-| API | 用途 |
-| --- | --- |
+| API                                   | 用途                                                                     |
+| ------------------------------------- | ------------------------------------------------------------------------ |
 | `xunlei.runtime.blob.createObjectURL` | 将 Canvas 导出的图片 Blob 转换为宿主可下载的临时 URL，需要 `blob` 权限。 |
-| `xunlei.tasks.create` | 使用临时 URL 创建图片下载任务，需要 `tasks.create` 权限。 |
-| `xunlei.runtime.blob.revokeObjectURL` | 创建任务失败时释放临时 URL；成功后不立即撤销，避免影响下载器读取。 |
+| `xunlei.tasks.create`                 | 使用临时 URL 创建图片下载任务，需要 `tasks.create` 权限。                |
+| `xunlei.runtime.blob.revokeObjectURL` | 创建任务失败时释放临时 URL；成功后不立即撤销，避免影响下载器读取。       |
 
 ## 运行
 

@@ -11,15 +11,8 @@ import {
 import { loadMiniappConfig } from './config.js'
 import { localDevEntry } from './dev-entry.js'
 import { devEvents } from './dev-events.js'
-import type {
-  BuildMiniappOptions,
-  DevMiniappOptions,
-  ResolvedMiniappConfig,
-} from './types.js'
-import {
-  validateMiniappDirectory,
-  validateSourceManifest,
-} from './validate.js'
+import type { BuildMiniappOptions, DevMiniappOptions, ResolvedMiniappConfig } from './types.js'
+import { validateMiniappDirectory, validateSourceManifest } from './validate.js'
 
 function configEnv(command: ConfigEnv['command'], mode: string): ConfigEnv {
   return { command, mode, isSsrBuild: false, isPreview: false }
@@ -57,24 +50,18 @@ export async function buildMiniapp(
   return { config, outDir }
 }
 
-export async function validateBuiltMiniapp(
-  options: BuildMiniappOptions = {},
-) {
+export async function validateBuiltMiniapp(options: BuildMiniappOptions = {}) {
   const root = options.root ?? process.cwd()
   const mode = options.mode ?? 'production'
   const config = await loadMiniappConfig(root, configEnv('build', mode))
   return validateMiniappDirectory(resolveOutputDirectory(config))
 }
 
-export async function devMiniapp(
-  options: DevMiniappOptions = {},
-): Promise<ViteDevServer> {
+export async function devMiniapp(options: DevMiniappOptions = {}): Promise<ViteDevServer> {
   const root = options.root ?? process.cwd()
   const mode = options.mode ?? 'development'
   const config = await loadMiniappConfig(root, configEnv('serve', mode))
-  const manifest = await validateSourceManifest(
-    resolve(config.root, config.manifestFile),
-  )
+  const manifest = await validateSourceManifest(resolve(config.root, config.manifestFile))
 
   const inlineConfig = createInlineConfig(config)
   const outDir = resolve(config.root, config.devOutDir)
@@ -86,7 +73,9 @@ export async function devMiniapp(
       ignored: [
         ...(Array.isArray(inlineConfig.server?.watch?.ignored)
           ? inlineConfig.server.watch.ignored
-          : inlineConfig.server?.watch?.ignored ? [inlineConfig.server.watch.ignored] : []),
+          : inlineConfig.server?.watch?.ignored
+            ? [inlineConfig.server.watch.ignored]
+            : []),
         `${outDir.replaceAll('\\', '/')}/**`,
       ],
     },

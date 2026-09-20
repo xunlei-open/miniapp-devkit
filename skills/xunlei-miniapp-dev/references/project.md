@@ -16,23 +16,23 @@ npm install
 
 资源路径、开发服务器默认配置和 Worker 构建见 [运行环境与构建选择](runtime.md)。
 
-| 文件 | 用途 |
-| --- | --- |
-| `manifest.json` | 应用信息、宿主入口、权限、事件和设置 |
+| 文件                        | 用途                                   |
+| --------------------------- | -------------------------------------- |
+| `manifest.json`             | 应用信息、宿主入口、权限、事件和设置   |
 | `miniapp.config.ts` / `.js` | devkit 配置，额外 Vite 配置放入 `vite` |
-| `index.html`、`src/main.*` | 页面入口与源码 |
-| `src/vite-env.d.ts` | 全局类型引用 |
-| `dist/` | 默认开发输出，供宿主加载与 HMR |
-| `output/`、`output/*.zip` | 默认生产构建与 ZIP 输出 |
+| `index.html`、`src/main.*`  | 页面入口与源码                         |
+| `src/vite-env.d.ts`         | 全局类型引用                           |
+| `dist/`                     | 默认开发输出，供宿主加载与 HMR         |
+| `output/`、`output/*.zip`   | 默认生产构建与 ZIP 输出                |
 
 Vue 配置示例；React 替换为 `@xunlei-open/miniapp-module-react` 并安装对应模块，Vanilla 不需要框架模块：
 
 ```ts
-import { defineConfig } from '@xunlei-open/miniapp';
+import { defineConfig } from '@xunlei-open/miniapp'
 export default defineConfig({
   modules: ['@xunlei-open/miniapp-module-vue'],
   vite: {},
-});
+})
 ```
 
 在项目包含的声明文件中保留：

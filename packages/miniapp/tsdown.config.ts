@@ -10,11 +10,6 @@ export default defineConfig({
   target: 'node20',
   platform: 'node',
   deps: {
-    neverBundle: [
-      '@xunlei-open/miniapp-types',
-      '@xunlei-open/vite-plugin-miniapp',
-      'vite',
-      'yazl',
-    ],
+    neverBundle: ['@xunlei-open/miniapp-types', '@xunlei-open/vite-plugin-miniapp', 'vite', 'yazl'],
   },
 })

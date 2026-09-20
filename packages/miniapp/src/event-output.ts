@@ -11,8 +11,13 @@ export function eventOutput(outDir: string, protectedFiles: string[]) {
   let previousEntries = new Map<string, Buffer>()
 
   function target(name: string) {
-    if (!name || isAbsolute(name) || name.includes('\\') || name.includes(':')
-      || name.split('/').some(part => !part || part === '.' || part === '..' || /[. ]$/.test(part))) {
+    if (
+      !name ||
+      isAbsolute(name) ||
+      name.includes('\\') ||
+      name.includes(':') ||
+      name.split('/').some((part) => !part || part === '.' || part === '..' || /[. ]$/.test(part))
+    ) {
       throw new Error(`Event build emitted an invalid output path: ${name}`)
     }
     const path = resolve(root, name)
@@ -26,7 +31,7 @@ export function eventOutput(outDir: string, protectedFiles: string[]) {
   async function checkPath(path: string) {
     // Do not allow symlinks/junctions to bypass the output-directory boundary.
     for (let current = path; ; current = dirname(current)) {
-      const stat = await lstat(current).catch(error => {
+      const stat = await lstat(current).catch((error) => {
         if (error.code === 'ENOENT') return undefined
         throw error
       })
@@ -36,7 +41,7 @@ export function eventOutput(outDir: string, protectedFiles: string[]) {
   }
 
   async function existing(path: string) {
-    return readFile(path).catch(error => {
+    return readFile(path).catch((error) => {
       if (error.code === 'ENOENT') return undefined
       throw error
     })
@@ -67,7 +72,10 @@ export function eventOutput(outDir: string, protectedFiles: string[]) {
       const old = await existing(path)
       if (old?.equals(bytes)) unchanged.add(name)
       if (old && !old.equals(bytes)) {
-        if (!entries.has(name)) throw new Error(`Event output conflicts with an existing file: ${name}. Use content-hashed dependency filenames.`)
+        if (!entries.has(name))
+          throw new Error(
+            `Event output conflicts with an existing file: ${name}. Use content-hashed dependency filenames.`,
+          )
         const owned = previousEntries.get(name)
         if (owned && !owned.equals(old)) throw new Error(`Event entry was modified outside the event build: ${name}`)
       }
@@ -84,7 +92,8 @@ export function eventOutput(outDir: string, protectedFiles: string[]) {
     const staging = await mkdtemp(join(root, '.miniapp-events-'))
     const staged: string[] = []
     try {
-      const ordered = [...contents].filter(([name]) => !unchanged.has(name))
+      const ordered = [...contents]
+        .filter(([name]) => !unchanged.has(name))
         .sort(([a], [b]) => Number(entries.has(a)) - Number(entries.has(b)))
       for (const [index, [, bytes]] of ordered.entries()) {
         const path = join(staging, String(index))

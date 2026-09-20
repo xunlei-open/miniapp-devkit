@@ -1,8 +1,16 @@
 import { load } from 'cheerio/slim'
 import type { OnResolveResource } from '@xunlei-open/miniapp-types'
 
-export interface Asset { name: string; url: string; sizeText?: string }
-export interface Release { repository: string; url: string; assets: Asset[] }
+export interface Asset {
+  name: string
+  url: string
+  sizeText?: string
+}
+export interface Release {
+  repository: string
+  url: string
+  assets: Asset[]
+}
 
 /** Accept repository URLs, /releases[/latest], or owner/repo; never intercept asset URLs. */
 export function repositoryUrl(input: string): string {
@@ -22,7 +30,9 @@ function githubUrl(href: string, base: string): URL | undefined {
   try {
     const url = new URL(href, base)
     if (url.origin === 'https://github.com' && !url.username && !url.password) return url
-  } catch { /* Ignore malformed links in remote HTML. */ }
+  } catch {
+    /* Ignore malformed links in remote HTML. */
+  }
 }
 
 function safeName(name: string): string {
@@ -45,7 +55,11 @@ export function parseAssets(html: string, base: string): Asset[] {
     url.hash = ''
     if (assets.has(url.href)) return
     let filename: string
-    try { filename = decodeURIComponent(path.split('/').pop()!) } catch { return }
+    try {
+      filename = decodeURIComponent(path.split('/').pop()!)
+    } catch {
+      return
+    }
     if (archive) filename = `source-${filename}`
     if (attestation) filename = `attestation-${path.split('/').at(-2)}.json`
     filename = safeName(filename)
@@ -54,10 +68,13 @@ export function parseAssets(html: string, base: string): Asset[] {
     while (names.has(filename.toLowerCase())) filename = `${suffix++}-${original}`
     names.add(filename.toLowerCase())
     // GitHub displays rounded sizes; keep the label without treating it as exact bytes.
-    const sizeText = $(element).closest('li').find('span').toArray()
-      .filter(span => !$(span).closest('a').length)
-      .map(span => $(span).text().replace(/\s+/g, ' ').trim())
-      .find(text => /^\d+(?:[.,]\d+)*\s*(?:[KMGTPE]i?B|B|Bytes?)$/i.test(text))
+    const sizeText = $(element)
+      .closest('li')
+      .find('span')
+      .toArray()
+      .filter((span) => !$(span).closest('a').length)
+      .map((span) => $(span).text().replace(/\s+/g, ' ').trim())
+      .find((text) => /^\d+(?:[.,]\d+)*\s*(?:[KMGTPE]i?B|B|Bytes?)$/i.test(text))
     assets.set(url.href, { name: filename, url: url.href, ...(sizeText ? { sizeText } : {}) })
   })
   return [...assets.values()]
@@ -70,20 +87,25 @@ export async function resolveRelease(input: string, fetcher: typeof fetch = fetc
     const timeout = setTimeout(() => controller.abort(), 20000)
     try {
       const response = await fetcher(url, {
-        headers: { Accept: 'text/html' }, signal: controller.signal, credentials: 'omit',
+        headers: { Accept: 'text/html' },
+        signal: controller.signal,
+        credentials: 'omit',
       })
       if (!response.ok) throw new Error(`GitHub 请求失败（${response.status}）：仓库可能没有 Release、非公开或访问受限`)
       const finalUrl = githubUrl(response.url || url, url)
       if (!finalUrl) throw new Error('GitHub 返回了非预期的跳转地址')
       return { html: await response.text(), url: finalUrl.href }
-    } finally { clearTimeout(timeout) }
+    } finally {
+      clearTimeout(timeout)
+    }
   }
   const page = await getHtml(`${repository}/releases/latest`)
   const $ = load(page.html)
   const repoPath = new URL(page.url).pathname.split('/').slice(0, 3).join('/')
-  const fragment = $('include-fragment[src]').toArray()
-    .map(element => githubUrl($(element).attr('src')!, page.url))
-    .find(url => url?.pathname.startsWith(`${repoPath}/releases/expanded_assets/`))
+  const fragment = $('include-fragment[src]')
+    .toArray()
+    .map((element) => githubUrl($(element).attr('src')!, page.url))
+    .find((url) => url?.pathname.startsWith(`${repoPath}/releases/expanded_assets/`))
   // GitHub lazily loads the complete Assets list as a separate HTML fragment.
   const assetPage = fragment ? await getHtml(fragment.href) : page
   const assets = parseAssets(assetPage.html, assetPage.url)
@@ -93,9 +115,13 @@ export async function resolveRelease(input: string, fetcher: typeof fetch = fetc
 
 export function releaseResource(release: Release): OnResolveResource {
   return {
-    name: release.repository.replace('/', '-'), size: 0,
-    files: release.assets.map(asset => ({
-      name: asset.name, path: '', size: 0, req: { url: asset.url },
+    name: release.repository.replace('/', '-'),
+    size: 0,
+    files: release.assets.map((asset) => ({
+      name: asset.name,
+      path: '',
+      size: 0,
+      req: { url: asset.url },
     })),
   }
 }

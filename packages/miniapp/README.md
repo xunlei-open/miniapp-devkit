@@ -13,12 +13,12 @@ pnpm exec xunlei-miniapp
 
 ## 命令
 
-| 命令 | 用途 |
-| --- | --- |
-| `xunlei-miniapp` | 开发与热更新 |
-| `xunlei-miniapp build` | 构建并校验生产产物 |
-| `xunlei-miniapp validate` | 校验已有构建产物 |
-| `xunlei-miniapp package` | 构建、校验并生成 ZIP |
+| 命令                                | 用途                   |
+| ----------------------------------- | ---------------------- |
+| `xunlei-miniapp`                    | 开发与热更新           |
+| `xunlei-miniapp build`              | 构建并校验生产产物     |
+| `xunlei-miniapp validate`           | 校验已有构建产物       |
+| `xunlei-miniapp package`            | 构建、校验并生成 ZIP   |
 | `xunlei-miniapp package --no-build` | 校验并打包已有生产产物 |
 
 开发产物位于 `dist/`，生产构建位于 `output/`，ZIP 位于 `output/`。开发服务运行时可以执行构建和打包，两者不会覆盖开发入口。构建与打包不自动执行类型检查。

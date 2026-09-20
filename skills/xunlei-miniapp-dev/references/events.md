@@ -12,11 +12,13 @@
 {
   "permissions": ["network"],
   "network": { "urls": ["https://api.example.com/*"] },
-  "scripts": [{
-    "event": "onResolve",
-    "match": { "urls": ["https://example.com/item/*"] },
-    "entry": "events/onResolve.js"
-  }]
+  "scripts": [
+    {
+      "event": "onResolve",
+      "match": { "urls": ["https://example.com/item/*"] },
+      "entry": "events/onResolve.js"
+    }
+  ]
 }
 ```
 
@@ -34,21 +36,23 @@ match 控制何时运行，network.urls 控制能请求哪里，两者可以是�
 
 ```ts
 xunlei.events.onResolve(async (ctx) => {
-  const source = new URL(ctx.req.url);
-  const value = source.searchParams.get('download');
-  if (!value) return;
-  const target = new URL(value, source);
+  const source = new URL(ctx.req.url)
+  const value = source.searchParams.get('download')
+  if (!value) return
+  const target = new URL(value, source)
   if (!['http:', 'https:'].includes(target.protocol)) {
-    throw new MessageError('下载地址协议不受支持');
+    throw new MessageError('下载地址协议不受支持')
   }
   ctx.res = {
     name: '解析结果',
-    files: [{
-      name: 'download.bin',
-      req: { url: target.href },
-    }],
-  };
-});
+    files: [
+      {
+        name: 'download.bin',
+        req: { url: target.href },
+      },
+    ],
+  }
+})
 ```
 
 上例不发起网络请求，因此单独使用时无需 network 权限。使用前面的远程接口清单时，应实现对应的接口调用并按响应校验数据。
@@ -64,12 +68,12 @@ ctx.req 只读；给 ctx.res 赋值才会提交结果，不能仅 return resourc
 
 ## 生命周期能力
 
-| 事件 | 可用操作 |
-| --- | --- |
-| onResolve | 读 ctx.req，给 ctx.res 赋值 |
-| onStart | ctx.task.setUrl；ctx.task.meta.req.setLabels / putLabel / delLabel |
-| onError | 开始事件的控制能力，另有只读 ctx.error 和 ctx.task.continue() |
-| onDone | ctx.task 只读，没有任务控制方法 |
+| 事件      | 可用操作                                                           |
+| --------- | ------------------------------------------------------------------ |
+| onResolve | 读 ctx.req，给 ctx.res 赋值                                        |
+| onStart   | ctx.task.setUrl；ctx.task.meta.req.setLabels / putLabel / delLabel |
+| onError   | 开始事件的控制能力，另有只读 ctx.error 和 ctx.task.continue()      |
+| onDone    | ctx.task 只读，没有任务控制方法                                    |
 
 控制方法返回 Promise。上下文控制由事件声明授权，不需要额外 tasks 权限；网络、blob、webview 仍要各自权限。MessageError 仅在 onResolve 中有用户 toast 的特殊语义，其它运行位置自行处理用户反馈。
 

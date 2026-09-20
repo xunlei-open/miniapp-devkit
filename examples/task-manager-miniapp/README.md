@@ -6,12 +6,12 @@ Vue + TypeScript 示例，支持创建和删除下载任务、查看任务与任
 
 ## 涉及的 API
 
-| API | 用途 |
-| --- | --- |
-| `xunlei.tasks.create` | 输入下载地址，创建普通任务。 |
-| `xunlei.tasks.list` | 获取最近任务的 ID 列表和总数。 |
-| `xunlei.tasks.detail` | 读取状态、进度和文件；任务组通过 `children` 遍历子任务。 |
-| `xunlei.tasks.delete` | 删除普通任务或任务组，通过 `deleteFiles` 选择是否删除本地文件。 |
+| API                        | 用途                                                                 |
+| -------------------------- | -------------------------------------------------------------------- |
+| `xunlei.tasks.create`      | 输入下载地址，创建普通任务。                                         |
+| `xunlei.tasks.list`        | 获取最近任务的 ID 列表和总数。                                       |
+| `xunlei.tasks.detail`      | 读取状态、进度和文件；任务组通过 `children` 遍历子任务。             |
+| `xunlei.tasks.delete`      | 删除普通任务或任务组，通过 `deleteFiles` 选择是否删除本地文件。      |
 | `xunlei.tasks.file.access` | 使用文件所属任务的 ID 和文件索引获取临时只读 URL，播放已完成的视频。 |
 
 ## 运行

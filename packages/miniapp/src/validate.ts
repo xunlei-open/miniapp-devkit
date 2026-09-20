@@ -22,11 +22,7 @@ function resolvePackagePath(directory: string, value: string, field: string): st
   return target
 }
 
-async function assertPackageFile(
-  directory: string,
-  value: unknown,
-  field: string,
-): Promise<void> {
+async function assertPackageFile(directory: string, value: unknown, field: string): Promise<void> {
   assertNonEmptyString(value, field)
   const target = resolvePackagePath(directory, value, field)
   let stat
@@ -85,9 +81,7 @@ export async function validateSourceManifest(manifestPath: string): Promise<Mini
   return readMiniappManifest(manifestPath)
 }
 
-export async function validateMiniappDirectory(
-  directoryPath: string,
-): Promise<MiniappValidationResult> {
+export async function validateMiniappDirectory(directoryPath: string): Promise<MiniappValidationResult> {
   const directory = resolve(directoryPath)
   const directoryStat = await lstat(directory).catch(() => undefined)
   if (!directoryStat?.isDirectory()) {
