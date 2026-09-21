@@ -1,6 +1,6 @@
 {
   "name": "@xunlei-open/miniapp-module-vue",
-  "version": "0.1.1-beta.7",
+  "version": "0.1.1-beta.8",
   "description": "Vue framework module for Xunlei Miniapps",
   "type": "module",
   "exports": {

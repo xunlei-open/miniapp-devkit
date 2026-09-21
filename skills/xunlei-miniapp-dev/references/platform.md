@@ -17,7 +17,7 @@ async function createDownload(url: string) {
 }
 ```
 
-任务请求放在 `req`，下载选项放在 `opts`。当前 Request.extra 只支持 header，不添加 method / body；HttpHeader 支持 User-Agent、Referer、Cookie、Authorization。HTTP 下载请求头使用 `req.extra.header`（单数），不同于 `fetch` 的 `headers`。按功能范围支持 HTTP(S)、磁力和本地种子，不用仅支持 HTTP 的验证器无意排除业务所需协议。
+下载请求头填写在 `req.extra.header`（单数），使用字符串值。按业务需要支持 HTTP(S)、磁力和本地种子，避免使用仅接受 HTTP 的校验逻辑排除其他下载协议。
 
 ## 权限与接口
 
@@ -39,11 +39,11 @@ async function createDownload(url: string) {
 
 权限逐项声明，不支持 `tasks` 或 `tasks.*` 通配。异步宿主 API 使用 await；`info`、`settings` 读取与 `logger.*` 同步。平台错误按 `{ code, message, details }` 处理，权限错误先查声明和是否重新加载清单。
 
-### 容易误用的任务行为
+### 任务操作
 
-- `tasks.update` 不支持 `opts.name`、`req.url` 或暂停恢复，只使用当前 `TaskUpdateInput` 支持的 `req.labels`。事件改地址用 `ctx.task.setUrl`，不要据此推导页面改地址能力。
-- `detail.type === 'single'` 后才能读取 `meta`、`protocol`；任务组读取 `children`，不能假定每条详情都为普通任务。
-- 分页参数由页面保管，不依赖 `list` 返回 `offset` / `limit`。
+- `tasks.update` 仅支持更新 `req.labels`。
+- 按 `detail.type` 区分任务：单任务读取 `meta`、`protocol`，任务组读取 `children`。
+- 页面维护分页参数 `offset` / `limit`。
 - `deleteFiles` 仅用于明确要求同时删除文件的功能，不默认打开。文件访问 URL 即取即用，不持久化。
 
 ## 网络与静态资源

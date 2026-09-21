@@ -106,7 +106,7 @@ export type Protocol = 'http' | 'bt' | 'ed2k'
 
 export type TaskStatus = 'ready' | 'running' | 'pause' | 'wait' | 'error' | 'done'
 
-/** 支持的 HTTP 请求头 */
+/** 当前迅雷宿主支持的 HTTP 请求头；运行时名称透传，具体适配由宿主负责。 */
 export type HttpHeader = {
   'User-Agent'?: string
   Referer?: string
@@ -129,7 +129,13 @@ export interface Request {
   labels?: { [key: string]: string }
 }
 
-export interface ExtensionRequest extends Request {
+/** 已有任务的请求数据递归只读，通过请求对象上的方法修改。 */
+export type ReadonlyExtra<T> = T extends object ? { readonly [K in keyof T]: ReadonlyExtra<T[K]> } : T
+
+/** 任务事件请求，数据和修改方法均位于 task.meta.req；宿主不返回原有请求头，修改方法仍可用。 */
+export interface MutateBaseRequest extends ReadonlyExtra<Omit<Request, 'extra'>> {
+  /** 覆盖任务请求地址；当前宿主仅支持 HTTP 任务，其他协议调用会报 unsupported。 */
+  setUrl(url: string): Promise<void>
   /** 全量覆盖任务请求的标签。 */
   setLabels(labels: Record<string, string>): Promise<void>
   /** 设置任务请求的单个标签。 */
@@ -137,6 +143,23 @@ export interface ExtensionRequest extends Request {
   /** 删除任务请求的单个标签。 */
   delLabel(key: string): Promise<void>
 }
+
+/** HTTP 请求修改方法，非 HTTP 任务调用无效果。 */
+export interface MutateHttpRequest extends MutateBaseRequest {
+  /** 全量替换请求头，空对象表示清空；运行时将值转为字符串，名称与重名处理交由宿主。 */
+  setHeaders(headers: HttpHeader): Promise<void>
+  /** 添加或替换单个请求头；运行时将名称和值转为字符串，大小写适配由宿主负责。 */
+  putHeader(name: keyof HttpHeader, value: string): Promise<void>
+  /** 删除单个请求头；运行时将名称转为字符串，大小写适配由宿主负责。 */
+  delHeader(name: keyof HttpHeader): Promise<void>
+}
+
+/** BT 请求目前仅提供通用请求修改方法。 */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface MutateBtRequest extends MutateBaseRequest {}
+
+/** 组合所有协议的请求方法，无需类型断言即可获得提示；协议专属方法仅对对应协议生效。 */
+export type MutateRequest = MutateHttpRequest & MutateBtRequest
 
 export interface FileInfo {
   name: string
@@ -232,21 +255,24 @@ export interface TaskFileAccessResult {
 }
 
 /**
- * 扩展任务类型，提供任务控制能力。
+ * 可修改请求的任务类型，所有请求修改方法均位于 meta.req。
  * 用于任务开始（onStart）和任务出错（onError）事件的上下文。
  */
-export interface ExtensionTask extends Task {
+export interface MutateTask extends Omit<Task, 'meta'> {
   meta: Omit<Task['meta'], 'req'> & {
-    req: ExtensionRequest
+    readonly req: MutateRequest
   }
-  /** 覆盖任务请求地址。 */
-  setUrl(url: string): Promise<void>
-  /** 设置任务请求扩展信息。 */
-  setExtra(extra: ReqExtra): Promise<void>
 }
 
-export interface OnErrorExtensionTask extends ExtensionTask {
+export interface MutateOnErrorTask extends MutateTask {
   /** 恢复任务。 */
+  continue(): Promise<void>
+}
+
+/** 组本身没有请求修改方法；通过 children 的独立任务 ID 修改请求。 */
+export interface MutateOnErrorTaskGroup extends Omit<TaskGroup, 'children'> {
+  children: MutateOnErrorTask[]
+  /** 恢复整个任务组；也可单独调用 child.continue()。 */
   continue(): Promise<void>
 }
 
@@ -326,7 +352,7 @@ export type OnResolveResource = {
 
 /** 资源解析事件（onResolve）的上下文。 */
 export interface OnResolveContext {
-  /** 用户请求信息（只读）。 */
+  /** 用户请求信息，不提供任务修改方法。 */
   req: Request
   /** 解析结果，由事件脚本填充。 */
   res?: OnResolveResource
@@ -335,13 +361,13 @@ export interface OnResolveContext {
 /** 任务开始事件（onStart）的上下文。 */
 export interface OnStartContext {
   /** 当前任务信息。 */
-  task: ExtensionTask
+  task: MutateTask
 }
 
 /** 任务出错事件（onError）的上下文。 */
 export interface OnErrorContext {
   /** 出错时的任务信息。 */
-  task: OnErrorExtensionTask
+  task: MutateOnErrorTask | MutateOnErrorTaskGroup
   /** 错误详情（只读）。 */
   error: Error
 }
@@ -349,7 +375,7 @@ export interface OnErrorContext {
 /** 任务完成事件（onDone）的上下文。 */
 export interface OnDoneContext {
   /** 完成时的任务信息，只读，不提供修改请求地址或标签等控制方法。 */
-  task: Task
+  task: Task | TaskGroup
 }
 
 // ─── 事件处理函数类型 ────────────────────────────────────────────

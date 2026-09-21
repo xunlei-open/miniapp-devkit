@@ -4,7 +4,7 @@
 
 ## 入口与匹配
 
-事件注册、上下文和可修改字段的完整定义见 [类型参考](api-types.ts) 中的 `XunleiEvents`、各事件 Context、`ExtensionTask` 与 `OnErrorExtensionTask`。
+事件注册、上下文和可修改字段的完整定义见 [类型参考](api-types.ts) 中的 `XunleiEvents`、各事件 Context、`MutateTask`、`MutateOnErrorTask` 与 `MutateHttpRequest`。
 
 默认 `src/events/onResolve.ts` 编译为 `events/onResolve.js`，清单声明的是产物路径：
 
@@ -57,25 +57,44 @@ xunlei.events.onResolve(async (ctx) => {
 
 上例不发起网络请求，因此单独使用时无需 network 权限。使用前面的远程接口清单时，应实现对应的接口调用并按响应校验数据。
 
-ctx.req 只读；给 ctx.res 赋值才会提交结果，不能仅 return resource。解析结果按 `OnResolveResource` / `OnResolveFileInfo` 填写：
+onResolve 使用普通 Request，不暴露修改方法；首次创建的下载请求及标签在 ctx.res 中声明。给 ctx.res 赋值才会提交解析结果，不能仅 return resource。解析结果按 `OnResolveResource` / `OnResolveFileInfo` 填写：
 
 - 资源的 `files` 必填，资源的 `name`、`size` 可省略。
 - 每个文件的 `req` 必填，其中 `req.url` 必填；文件的 `name`、`path`、`size` 可省略。只知道下载地址时，文件项可仅写 `{ req: { url } }`。
 - 可选字段不接受 `null`；普通任务详情中的 `Resource` / `FileInfo` 仍要求名称、路径和大小。
 - 当前 `OnResolveResource` 没有 `range` 字段，不要添加；显式提供文件名与 `path` 时，要处理非法字符、Windows 保留名称及越界路径。
 
-无需处理时不赋值；匹配到但解析失败时输出明确错误。
+下载请求头填写到 `ctx.res.files[].req.extra.header`，使用字符串值；该入口跳过 `null` / `undefined`。无需处理时不赋值；匹配到但解析失败时输出明确错误。
 
 ## 生命周期能力
 
-| 事件      | 可用操作                                                           |
-| --------- | ------------------------------------------------------------------ |
-| onResolve | 读 ctx.req，给 ctx.res 赋值                                        |
-| onStart   | ctx.task.setUrl；ctx.task.meta.req.setLabels / putLabel / delLabel |
-| onError   | 开始事件的控制能力，另有只读 ctx.error 和 ctx.task.continue()      |
-| onDone    | ctx.task 只读，没有任务控制方法                                    |
+| 事件 | 可用操作 |
+| --- | --- |
+| onResolve | 读取 `ctx.req`，填写 `ctx.res` |
+| onStart | 通过 `task.meta.req` 修改 URL、标签和请求头 |
+| onError | 修改请求并调用 `continue()` 恢复任务 |
+| onDone | 读取任务结果 |
 
-控制方法返回 Promise。上下文控制由事件声明授权，不需要额外 tasks 权限；网络、blob、webview 仍要各自权限。MessageError 仅在 onResolve 中有用户 toast 的特殊语义，其它运行位置自行处理用户反馈。
+控制方法使用 `await`，由事件声明授权；网络、blob、webview 仍需各自权限。`MessageError` 在 onResolve 中会显示用户提示。
+
+URL 和请求头修改仅适用于 HTTP 任务。单项请求头使用 `putHeader` / `delHeader`；`setHeaders` 全量替换，遗漏项清空。名称和值转为字符串，宿主忽略名称大小写，重名取最后一项。
+
+onStart 按单任务触发；onError / onDone 按单任务或任务组触发。组事件的 `children` 仅包含匹配当前脚本的子任务。恢复时检查子任务状态并限制重试次数；`child.continue()` 恢复该子任务，组级 `continue()` 恢复整个组。
+
+以下示例对失败的 HTTP 任务重试一次：
+
+```ts
+xunlei.events.onError(async ({ task }) => {
+  const tasks = task.type === 'group' ? task.children : [task]
+  for (const child of tasks) {
+    if (child.status !== 'error' || child.protocol !== 'http') continue
+    const req = child.meta.req
+    if (req.labels?.retry === '1') continue
+    await req.putLabel('retry', '1')
+    await child.continue()
+  }
+})
+```
 
 事件无 DOM、页面导航，也不提供 Node.js 文件系统。事件中的 `xunlei.tasks` 可用能力以目标宿主版本为准。需要 DOM 解析时在辅助 WebView 的 execute 中执行，不直接使用 document。
 
