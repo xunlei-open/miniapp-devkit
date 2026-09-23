@@ -29,6 +29,6 @@ npm run package
 
 开发时在迅雷客户端中加载本地应用的目录，保持 dev server 运行。打包结果位于 `output/`。
 
-生成项目包含创建下载任务的页面示例。应用信息和权限在 `manifest.json` 中配置，开发与构建配置使用 `miniapp.config.ts` 或 `.js`。
+生成项目包含创建下载任务的页面示例。所有模板使用 `900 × 600` 的窗口内容尺寸；`entry.type` 省略，使用默认的 `miniapp` 入口。应用信息和权限在 `manifest.json` 中配置，开发与构建配置使用 `miniapp.config.ts` 或 `.js`。
 
 [项目入口](https://github.com/xunlei-open/miniapp-devkit#readme) · [官方文档](https://open.xunlei.com/doc/miniapp/introduction)

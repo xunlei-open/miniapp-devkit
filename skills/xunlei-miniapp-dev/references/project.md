@@ -54,13 +54,15 @@ export default defineConfig({
   "name": "my-miniapp",
   "title": "我的下载助手",
   "version": "1.0.0",
-  "entry": { "type": "miniapp", "url": "index.html" },
-  "window": { "width": 900, "height": 700 },
+  "entry": { "url": "index.html" },
+  "window": { "width": 900, "height": 600 },
   "permissions": ["tasks.create"]
 }
 ```
 
 `name`、`title`、`version` 必填；版本使用 semver，更新发布时递增。默认入口的 `entry.url`、`icon`、`scripts[].entry` 为相对包根目录路径，不能越界、用绝对路径或远程 URL。图标只有实际存在并进入产物后才声明；使用脚手架现有静态资源约定。
+
+`entry.type` 默认为 `miniapp`，包内页面入口省略该字段；仅内嵌远程网页入口显式声明 `in_app_webview`。
 
 窗口与页面布局见 [响应式布局](responsive-ui.md)；下载生命周期扩展见 [事件脚本](events.md)。
 

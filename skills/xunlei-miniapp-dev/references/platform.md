@@ -39,6 +39,8 @@ async function createDownload(url: string) {
 
 权限逐项声明，不支持 `tasks` 或 `tasks.*` 通配。异步宿主 API 使用 await；`info`、`settings` 读取与 `logger.*` 同步。平台错误按 `{ code, message, details }` 处理，权限错误先查声明和是否重新加载清单。
 
+页面与事件运行时均暴露完整的 `xunlei.tasks`；缺少对应权限时调用返回 `PERMISSION_DENIED`，不会移除 API。
+
 ### 任务操作
 
 - `tasks.update` 仅支持更新 `req.labels`。
@@ -59,7 +61,7 @@ async function createDownload(url: string) {
 }
 ```
 
-只声明实际请求范围。`*://` 只覆盖 HTTP(S)，WebSocket 显式写 `ws://` 或 `wss://`。任务下载地址、辅助 WebView 不受该白名单约束，不要仅因下载域名就增加 network。
+只声明实际请求范围。`network.urls` 支持 `<scheme>://<host>/<path>` 及省略路径的写法，如 `https://*`；`*://` 覆盖任意协议，包括 WS/WSS。`<all_urls>` 和 `<scheme>:*` 仅用于事件匹配，不会授予网络访问权限。仅声明 network 权限或 URL 规则、规则为空或无效、请求未命中时，直接网络请求均被拒绝。任务下载地址、辅助 WebView 不受该白名单约束，不要仅因下载域名就增加 network。
 
 静态 JS、CSS、字体、图片、媒体随包构建，不能用远程 CDN 或 iframe 绕过限制。动态图片可在允许的数据请求后转成浏览器 Blob URL 展示并及时释放，但这不会启用浏览器原生下载。
 
@@ -69,12 +71,9 @@ async function createDownload(url: string) {
 
 ## 宿主环境与 UI
 
-`host.env` 读宿主当前状态，页面和事件脚本均可用；`host.ui` 操作宿主界面，仅页面可用。两者均无权限要求。环境值是按需查询的当前值，用户在宿主中修改后（换下载目录、切主题）后续调用返回新值，不要缓存当常量；暂无变更订阅，需要跟随主题时在页面激活等时机重查。
+`host.env` 查询宿主默认下载目录，页面和事件脚本均可用；`host.ui` 操作宿主界面，仅页面可用。两者均无权限要求。用户修改下载目录后，后续查询返回新值，不要缓存当常量。深浅主题通过媒体查询自动跟随宿主，见 [主题适配](responsive-ui.md#主题适配)。
 
 ```ts
-// 跟随宿主外观。
-const [color, mode] = await Promise.all([xunlei.host.env.themeColor(), xunlei.host.env.themeMode()])
-
 // 选目录、建任务、跳转高亮。
 const dir = await xunlei.host.env.defaultDownloadDir()
 const picked = await xunlei.host.ui.pickDirectory({ defaultPath: dir })
@@ -85,7 +84,7 @@ const task = await xunlei.tasks.create({
 await xunlei.host.ui.openTaskList({ taskId: task.id })
 ```
 
-`pickDirectory` 用户取消时返回 `null`，不抛错，不要用 try/catch 区分取消；错误处理只留给真错误。`themeMode` 在宿主设置为跟随系统时返回解析后的 `light` 或 `dark`，不返回 auto。`openTaskList` 的 `taskId` 不存在或列表中不可见时仅跳转、不高亮，不报错。
+`pickDirectory` 用户取消时返回 `null`，不抛错，不要用 try/catch 区分取消；错误处理只留给真错误。`openTaskList` 的 `taskId` 不存在或列表中不可见时仅跳转、不高亮，不报错。
 
 ## 导出 Blob
 

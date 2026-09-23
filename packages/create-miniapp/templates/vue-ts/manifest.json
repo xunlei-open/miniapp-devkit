@@ -5,12 +5,11 @@
   "description": "一个迅雷微应用示例",
   "version": "1.0.0",
   "entry": {
-    "type": "miniapp",
     "url": "index.html"
   },
   "window": {
     "width": 900,
-    "height": 700
+    "height": 600
   },
   "permissions": ["tasks.create"]
 }

@@ -1,6 +1,6 @@
 ---
 name: xunlei-miniapp-dev
-description: 使用 miniapp-devkit 创建、开发、调试和打包迅雷客户端微应用，接入 xunlei API 或下载事件。
+description: 使用 miniapp-devkit 创建、开发、调试和打包迅雷微应用，接入 xunlei API 或下载事件。
 ---
 
 # 迅雷微应用开发
@@ -13,9 +13,10 @@ description: 使用 miniapp-devkit 创建、开发、调试和打包迅雷客户
 
 - 创建工程、配置、调试、打包与安装：[工程与交付](references/project.md)。
 - 配置资源加载、Worker/WASM 或判断主页面与辅助页面差异：[运行环境与构建选择](references/runtime.md)。
-- 编写或调整 UI：[响应式布局](references/responsive-ui.md)，包含默认 900 × 700、无应用级 Header 和一屏布局约定。
+- 编写或调整 UI：[响应式布局](references/responsive-ui.md)，包含默认 900 × 600、无应用级 Header 和一屏布局约定。
 - 下载任务、存储、网络、Blob、辅助 WebView：[平台 API](references/platform.md)。
-- 读取宿主主题、下载目录或调用宿主 UI：[宿主环境与 UI](references/platform.md#宿主环境与-ui)。
+- 跟随宿主切换深浅主题：[主题适配](references/responsive-ui.md#主题适配)。
+- 读取下载目录或调用宿主 UI：[宿主环境与 UI](references/platform.md#宿主环境与-ui)。
 - 自动解析链接或处理下载生命周期：[事件脚本](references/events.md)。
 - 查询字段与签名：[完整类型参考](references/api-types.ts)。清单从 `MiniappManifest`、平台 API 从 `Xunlei`、事件从 `XunleiEvents` 及对应 Context 定位。
 

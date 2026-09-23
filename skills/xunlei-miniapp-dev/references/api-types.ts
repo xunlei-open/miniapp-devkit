@@ -51,14 +51,14 @@ export type MiniappPermission =
 
 export interface MiniappNetworkManifest {
   [key: string]: unknown
-  /** 页面和事件脚本可直接访问的远程网址匹配模式。 */
+  /** 页面和事件脚本的网络白名单，需配合 network 权限；仅支持主机／路径规则（如 https://*），不支持 <all_urls> 或 <scheme>:*。 */
   urls?: string[]
 }
 
 export type MiniappEntryType = 'miniapp' | 'in_app_webview'
 
 export interface MiniappEntryManifest {
-  /** 默认使用微应用自己的页面容器。 */
+  /** 默认为 miniapp，使用微应用自己的页面容器，可省略。 */
   type?: MiniappEntryType
   /** 微应用页面（miniapp）使用包内相对地址；内嵌网页（in_app_webview）使用完整的 HTTP 或 HTTPS 地址。 */
   url: string
@@ -69,8 +69,11 @@ export interface MiniappRepositoryManifest {
   directory?: string
 }
 
+/** Electron 创建时将内容宽高分别提升到至少 480 / 320，拖动缩放的最小外框为 480 × 320，不锁定比例。 */
 export interface MiniappWindowOptions {
+  /** 内容可视区宽度，不含边框；Electron 默认 900。 */
   width?: number
+  /** 内容可视区高度，不含标题栏和边框；Electron 默认 600。 */
   height?: number
 }
 
@@ -82,8 +85,11 @@ export interface MiniappScriptManifest {
 
 export type MiniappLifecycleEventName = 'onResolve' | 'onStart' | 'onError' | 'onDone'
 
+/** urls 与 labels 按 OR 匹配；均未配置或为空时不匹配。 */
 export type MiniappEventMatch = {
+  /** 任一规则命中即可；支持 <all_urls>、<scheme>:* 和主机／路径规则，*:// 匹配任意协议。 */
   urls?: string[]
+  /** 任一标签作为请求 labels 的 key 存在即可命中。 */
   labels?: string[]
 }
 
@@ -772,9 +778,6 @@ export interface XunleiRuntime {
 
 // ─── 宿主环境与 UI 类型 ──────────────────────────────────────────
 
-/** 宿主主题模式。 */
-export type HostThemeMode = 'light' | 'dark'
-
 /** 宿主环境信息查询接口，页面和事件脚本均可用。 */
 export interface XunleiHostEnv {
   /**
@@ -782,11 +785,6 @@ export interface XunleiHostEnv {
    * 用户在宿主中修改后，后续调用返回新值。
    */
   defaultDownloadDir(): Promise<string>
-  /**
-   * 宿主当前主题模式；宿主设置为跟随系统时返回解析后的结果，不返回 auto。
-   * 主题变化后，后续调用返回新值。
-   */
-  themeMode(): Promise<HostThemeMode>
 }
 
 export interface UiPickDirectoryOptions {
@@ -833,7 +831,7 @@ export interface Xunlei {
   settings: XunleiSettings
   /** 键值对存储接口。 */
   storage: XunleiStorage
-  /** 任务管理接口。 */
+  /** 页面和事件脚本均可用的任务管理接口；调用受对应任务权限控制。 */
   tasks: XunleiMiniappTasks
   /** 事件注册接口。 */
   events: XunleiEvents

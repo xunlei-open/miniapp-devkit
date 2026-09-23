@@ -24,9 +24,11 @@
 
 match 控制何时运行，network.urls 控制能请求哪里，两者可以是不同域名。示例地址须替换为真实业务地址。
 
-- 缺少 match 或匹配条件时不参与匹配。urls 数组内取或；labels 按任一 key 存在匹配；同时声明 urls 和 labels 时两者都需命中。
+- 缺少 match 或匹配条件时不参与匹配。urls 数组内取或；labels 按任一 key 存在匹配；同时声明 urls 和 labels 时任一条件命中即可（OR）。
 - 模式如 `https://*.example.com/item/*`，`*.example.com` 包含裸域与子域，不能写 `*example.com` 或 `www.*.com`。
-- `*://` 只匹配 HTTP(S)；端口不参与匹配；`/item/*` 也命中 `/item`。避免为了让事件触发而放宽为匹配所有站点。
+- 事件支持 `<all_urls>` 全匹配、`<scheme>:*` 协议匹配（如 `magnet:*`、`ed2k:*`）和 `<scheme>://<host>/<path>` 主机／路径匹配。`<all_urls>` 不校验 URL 格式；`*://*/*` 仍要求合法非空主机，不能代替全匹配。
+- `*://` 匹配任意协议，包括 WS/WSS 和自定义协议；`https://*` 可匹配任意 HTTPS 主机和路径。显式端口参与匹配，路径规则包含查询参数和锚点。避免为了让事件触发而放宽为匹配所有站点。
+- `network.urls` 仅支持主机／路径规则（含 `https://*` 简写），不支持 `<all_urls>` 或 `<scheme>:*`；网络规则还需配合 `network` 权限。
 
 ## 注册与结果
 
@@ -96,7 +98,7 @@ xunlei.events.onError(async ({ task }) => {
 })
 ```
 
-事件无 DOM、页面导航，也不提供 Node.js 文件系统。事件中的 `xunlei.tasks` 可用能力以目标宿主版本为准。需要 DOM 解析时在辅助 WebView 的 execute 中执行，不直接使用 document。
+事件无 DOM、页面导航，也不提供 Node.js 文件系统。事件运行时与页面一样暴露完整的 `xunlei.tasks`，调用需声明对应的任务权限，缺少权限返回 `PERMISSION_DENIED`；事件上下文中的任务控制方法由事件声明授权，不受 `tasks.*` 权限控制。需要 DOM 解析时在辅助 WebView 的 execute 中执行，不直接使用 document。
 
 每次触发创建独立运行时，完成后回收；跨触发数据放 xunlei.storage，不依赖模块缓存或常驻循环。单次事件总时限约 60 秒，给网络和等待操作设置合理超时，错误恢复有界重试。活跃 blob 数据源可延续运行时，不要创建下载数据后立即撤销 URL。
 

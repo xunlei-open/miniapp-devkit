@@ -1,6 +1,6 @@
 {
   "name": "@xunlei-open/vite-plugin-miniapp",
-  "version": "0.1.1-beta.8",
+  "version": "0.1.1-beta.9",
   "description": "Vite plugin for building Xunlei Miniapps",
   "type": "module",
   "main": "./dist/index.cjs",

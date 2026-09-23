@@ -133,9 +133,9 @@ for (const framework of ['vanilla', 'vue', 'react'] as const) {
         unknown
       >
       expect(manifest.entry).toEqual({
-        type: 'miniapp',
         url: 'index.html',
       })
+      expect(manifest.window).toEqual({ width: 900, height: 600 })
       expect(manifest.permissions).toEqual(['tasks.create'])
       expect(manifest.scripts).toBeUndefined()
       expect(fs.existsSync(path.join(targetDir, 'src/events'))).toBe(false)

@@ -5,7 +5,7 @@
   "description": "解析 GitHub 最新发布的 Assets，多选后使用迅雷下载。",
   "version": "1.0.0",
   "icon": "icon.png",
-  "entry": { "type": "miniapp", "url": "index.html" },
+  "entry": { "url": "index.html" },
   "window": { "width": 920, "height": 720 },
   "permissions": ["network", "tasks.create"],
   "network": { "urls": ["https://github.com/*"] },
