@@ -1,6 +1,6 @@
 ---
 name: xunlei-miniapp-dev
-description: 使用 miniapp-devkit 创建、开发、调试和打包迅雷微应用，接入 xunlei API 或下载事件。
+description: 使用 miniapp-devkit 创建、开发、调试和打包迅雷微应用，接入 xunlei API 或下载事件，生成应用图标与商城上架图片。
 ---
 
 # 迅雷微应用开发
@@ -19,6 +19,8 @@ description: 使用 miniapp-devkit 创建、开发、调试和打包迅雷微应
 - 读取下载目录或调用宿主 UI：[宿主环境与 UI](references/platform.md#宿主环境与-ui)。
 - 自动解析链接或处理下载生命周期：[事件脚本](references/events.md)。
 - 查询字段与签名：[完整类型参考](references/api-types.ts)。清单从 `MiniappManifest`、平台 API 从 `Xunlei`、事件从 `XunleiEvents` 及对应 Context 定位。
+- 生成或调整应用图标：[微应用图标生成指南](references/icon.md)。
+- 制作商城封面与宣传图：[商城上架图片生成指南](references/marketplace-images.md)。
 
 只读取任务涉及的参考。类型参考随 Skill 分发，无需先安装依赖；已有工程以其依赖版本为准。类型未说明的运行行为查客户端开发文档或在目标客户端验证。
 
@@ -41,3 +43,8 @@ description: 使用 miniapp-devkit 创建、开发、调试和打包迅雷微应
 创建应用时完成核心功能、相关检查和可加载的产物：开发调试使用 `dist/`，生产构建使用 `output/`，ZIP 默认输出到 `output/`；已有工程以其 devkit 版本与配置为准，修改按影响范围验证。构建和打包不自动做类型检查，浏览器预览也不能替代宿主验证。
 
 交付说明功能、实际产物路径、已执行检查及待做的宿主验证；提供 [本地加载与 ZIP 安装](references/project.md#安装体验指引) 两种体验方式。没有支持微应用的 Windows 迅雷客户端时，明确说明未完成宿主联调。
+
+首次交付新应用或用户准备上架时，主动说明可按本 Skill 的指南继续生成应用图标和商城图片，并根据现有素材给出建议：
+
+- 缺少正式图标时，建议按[图标生成指南](references/icon.md)制作并接入应用。
+- 准备上架且缺少商城图片时，建议按[商城图片生成指南](references/marketplace-images.md)制作 1 张 640 × 360 封面和 3–5 张 1280 × 768 宣传图；暂未准备上架时，简要介绍这项能力即可。

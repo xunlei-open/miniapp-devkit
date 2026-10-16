@@ -209,6 +209,18 @@ export interface TaskProgress {
   downloaded: number
 }
 
+/** 各下载来源的累计下载量，单位均为字节。 */
+export interface TaskStats {
+  /** 从原始地址下载的大小。 */
+  originSize: number
+  /** 通过 P2P 下载的大小。 */
+  p2pSize: number
+  /** 通过镜像加速（P2S）下载的大小。 */
+  p2sSize: number
+  /** 通过会员加速下载的大小。 */
+  vipSize: number
+}
+
 // ─── 任务类型 ────────────────────────────────────────────────────
 
 export interface Task {
@@ -231,6 +243,8 @@ export interface Task {
   status: TaskStatus
   /** 任务进度。 */
   progress: TaskProgress
+  /** 当前任务的各下载来源统计。 */
+  stats: TaskStats
   /** 任务总大小，单位为字节。 */
   size: number
   /** 任务创建时间，采用 ISO 8601 格式。 */
@@ -284,7 +298,10 @@ export interface MutateOnErrorTaskGroup extends Omit<TaskGroup, 'children'> {
 
 export interface TaskCreateInput {
   req: Request
-  opts?: Options
+  opts?: Options & {
+    /** 是否创建后台任务，不显示在宿主界面的任务列表中；当前仅 tasks.create 的 HTTP(S) 单任务支持。 */
+    background?: boolean
+  }
 }
 
 /** 创建一组共享下载目录的任务，复用 tasks.create 权限。 */

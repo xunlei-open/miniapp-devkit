@@ -1,4 +1,4 @@
 interface:
   display_name: '迅雷微应用开发'
-  short_description: '以 UI 页面为主快速开发迅雷微应用，按需接入下载能力与事件扩展'
-  default_prompt: '使用 $xunlei-miniapp-dev 帮我开发一个迅雷微应用，先跑通页面核心功能，再完成类型检查和打包。'
+  short_description: '开发、调试和打包迅雷微应用，接入下载 API 与事件，生成图标和商城图片'
+  default_prompt: '使用 $xunlei-miniapp-dev 帮我开发一个迅雷图片裁剪微应用，支持选择本地图片、调整裁剪区域、预览并通过迅雷下载裁剪结果，完成后构建并打包。'
