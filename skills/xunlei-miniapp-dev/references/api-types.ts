@@ -305,6 +305,8 @@ export interface TaskCreateInput {
   opts?: Options & {
     /** 是否创建后台任务，不显示在宿主界面的任务列表中；当前仅 tasks.create 的 HTTP(S) 单任务支持。 */
     background?: boolean
+    /** 任务大小，用于预设任务文件大小，单位为字节；当前仅 tasks.create 的 HTTP(S) 单任务支持。*/
+    size?: number
   }
 }
 
