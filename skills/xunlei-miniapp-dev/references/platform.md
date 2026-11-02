@@ -48,6 +48,8 @@ async function createDownload(url: string) {
 - 页面维护分页参数 `offset` / `limit`。
 - `deleteFiles` 仅用于明确要求同时删除文件的功能，不默认打开。文件访问 URL 即取即用，不持久化。
 
+任务详情的 `Task.meta.res.files` 使用 `FileInfo`，包含名称、路径、大小、`download: boolean`（是否勾选下载）和 `status: TaskFileStatus`。文件状态为 `running | wait | error | done`，不包含任务的 `ready`、`pause` 状态。任务组的子任务使用相同结构；`onResolve` 解析结果使用独立的 `OnResolveFileInfo`，不包含 `download` 和 `status`。
+
 ## 网络与静态资源
 
 开发资源加载和主页面与辅助 WebView 的跨域差异见 [运行环境与构建选择](runtime.md)。
@@ -71,9 +73,11 @@ async function createDownload(url: string) {
 
 ## 宿主环境与 UI
 
-`host.env` 查询宿主默认下载目录，页面和事件脚本均可用；`host.ui` 操作宿主界面，仅页面可用。两者均无权限要求。用户修改下载目录后，后续查询返回新值，不要缓存当常量。深浅主题通过媒体查询自动跟随宿主，见 [主题适配](responsive-ui.md#主题适配)。
+`host.env.version()` 获取当前迅雷版本，`host.env.defaultDownloadDir()` 查询宿主默认下载目录，页面和事件脚本均可用；`host.ui` 操作宿主界面，仅页面可用。两者均无权限要求。用户修改下载目录后，后续查询返回新值，不要缓存当常量。深浅主题通过媒体查询自动跟随宿主，见 [主题适配](responsive-ui.md#主题适配)。
 
 ```ts
+const xunleiVersion = await xunlei.host.env.version()
+
 // 选目录、建任务、跳转高亮。
 const dir = await xunlei.host.env.defaultDownloadDir()
 const picked = await xunlei.host.ui.pickDirectory({ defaultPath: dir })
@@ -85,6 +89,13 @@ await xunlei.host.ui.openTaskList({ taskId: task.id })
 ```
 
 `pickDirectory` 用户取消时返回 `null`，不抛错，不要用 try/catch 区分取消；错误处理只留给真错误。`openTaskList` 的 `taskId` 不存在或列表中不可见时仅跳转、不高亮，不报错。
+
+`host.ui.play({ taskId, index? })` 调起宿主播放器，返回 `Promise<void>`。`taskId` 必填；`index` 可选，是文件在任务资源文件列表中的索引，从 0 开始；任务组内的文件使用对应子任务的 ID。
+
+```ts
+await xunlei.host.ui.play({ taskId: task.id })
+await xunlei.host.ui.play({ taskId: task.id, index: 0 })
+```
 
 ## 导出 Blob
 

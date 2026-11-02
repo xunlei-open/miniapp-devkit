@@ -116,6 +116,9 @@ export type Protocol = 'http' | 'bt' | 'ed2k'
 
 export type TaskStatus = 'ready' | 'running' | 'pause' | 'wait' | 'error' | 'done'
 
+/** 任务详情中的文件下载状态。 */
+export type TaskFileStatus = Exclude<TaskStatus, 'ready' | 'pause'>
+
 /** 当前迅雷宿主支持的 HTTP 请求头；运行时名称透传，具体适配由宿主负责。 */
 export type HttpHeader = {
   'User-Agent'?: string
@@ -177,6 +180,10 @@ export interface FileInfo {
   path: string
   /** 文件大小，单位为字节。 */
   size: number
+  /** 是否勾选下载。 */
+  download: boolean
+  /** 文件下载状态，不包含 ready 和 pause。 */
+  status: TaskFileStatus
 }
 
 export interface Resource {
@@ -799,6 +806,8 @@ export interface XunleiRuntime {
 
 /** 宿主环境信息查询接口，页面和事件脚本均可用。 */
 export interface XunleiHostEnv {
+  /** 获取当前迅雷版本。 */
+  version(): Promise<string>
   /**
    * 宿主默认下载目录，绝对路径。
    * 用户在宿主中修改后，后续调用返回新值。
@@ -822,12 +831,21 @@ export interface UiOpenTaskListOptions {
   taskId?: string
 }
 
+export interface UiPlayOptions {
+  /** 要播放的任务标识。 */
+  taskId: string
+  /** 可选，文件在任务资源文件列表中的索引，从 0 开始。 */
+  index?: number
+}
+
 /** 宿主 UI 操作接口，仅微应用页面可用，事件脚本不注入。 */
 export interface XunleiHostUi {
   /** 打开宿主目录选择器；用户取消时返回 null，不视为错误。 */
   pickDirectory(opts?: UiPickDirectoryOptions): Promise<UiPickDirectoryResult | null>
   /** 跳转到宿主任务列表页，可选高亮指定任务。 */
   openTaskList(opts?: UiOpenTaskListOptions): Promise<void>
+  /** 调起宿主播放器，播放指定任务文件。 */
+  play(opts: UiPlayOptions): Promise<void>
 }
 
 /**

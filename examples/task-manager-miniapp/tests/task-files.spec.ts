@@ -13,13 +13,20 @@ function task(id: string, status: Task['status'], names: string[]): Task {
     createdAt: '',
     updatedAt: '',
     progress: { used: 0, speed: 0, downloaded: 0 },
+    stats: { originSize: 0, p2pSize: 0, p2sSize: 0, vipSize: 0 },
     meta: {
       req: { url: 'https://example.com' },
       opts: {},
       res: {
         name: id,
         size: 0,
-        files: names.map((name) => ({ name, path: '', size: 0 })),
+        files: names.map((name) => ({
+          name,
+          path: '',
+          size: 0,
+          download: true,
+          status: status === 'ready' || status === 'pause' ? 'wait' : status,
+        })),
       },
     },
   }
