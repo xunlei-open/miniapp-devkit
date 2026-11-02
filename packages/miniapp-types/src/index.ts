@@ -112,7 +112,7 @@ export type Protocol = 'http' | 'bt' | 'ed2k'
 
 export type TaskStatus = 'ready' | 'running' | 'pause' | 'wait' | 'error' | 'done'
 
-/** 任务详情中的文件下载状态。 */
+/** 文件下载状态：running 下载中，wait 等待下载，error 下载出错，done 下载完成。 */
 export type TaskFileStatus = Exclude<TaskStatus, 'ready' | 'pause'>
 
 /** 当前迅雷宿主支持的 HTTP 请求头；运行时名称透传，具体适配由宿主负责。 */
@@ -170,7 +170,9 @@ export interface MutateBtRequest extends MutateBaseRequest {}
 /** 组合所有协议的请求方法，无需类型断言即可获得提示；协议专属方法仅对对应协议生效。 */
 export type MutateRequest = MutateHttpRequest & MutateBtRequest
 
+/** 任务资源中的文件信息。 */
 export interface FileInfo {
+  /** 文件名称。 */
   name: string
   /** 文件相对于资源根目录的路径。 */
   path: string
@@ -178,7 +180,7 @@ export interface FileInfo {
   size: number
   /** 是否勾选下载。 */
   download: boolean
-  /** 文件下载状态，不包含 ready 和 pause。 */
+  /** 文件当前的下载状态。 */
   status: TaskFileStatus
 }
 
@@ -272,7 +274,9 @@ export interface TaskGroup extends Omit<Task, 'type' | 'protocol' | 'meta'> {
 }
 
 export interface TaskFileAccessInput {
+  /** 文件所属的任务标识；任务组中的文件使用对应子任务的 ID。 */
   taskId: string
+  /** 文件在 task.meta.res.files 数组中的下标，从 0 开始。 */
   fileIndex: number
 }
 
@@ -798,7 +802,7 @@ export interface XunleiRuntime {
   webview: XunleiRuntimeWebview
 }
 
-// ─── 宿主环境与 UI 类型 ──────────────────────────────────────────
+// ─── 宿主环境、UI 与播放器类型 ────────────────────────────────────
 
 /** 宿主环境信息查询接口，页面和事件脚本均可用。 */
 export interface XunleiHostEnv {
@@ -827,11 +831,35 @@ export interface UiOpenTaskListOptions {
   taskId?: string
 }
 
-export interface UiPlayOptions {
-  /** 要播放的任务标识。 */
+/** 下载任务中的音视频播放参数。 */
+export interface TaskPlayOptions {
+  /** 播放来源：下载任务。 */
+  source: 'task'
+  /** 要播放的任务标识；任务组内指定文件时使用对应子任务的 ID。 */
   taskId: string
-  /** 可选，文件在任务资源文件列表中的索引，从 0 开始。 */
-  index?: number
+  /** 文件在 task.meta.res.files 数组中的下标，从 0 开始；省略时由宿主自动选择播放文件。 */
+  fileIndex?: number
+}
+
+/** 音视频资源链接的播放参数。 */
+export interface UrlPlayOptions {
+  /** 播放来源：资源链接。 */
+  source: 'url'
+  /** 宿主支持的音视频资源链接。 */
+  url: string
+  /** 媒体展示名称。 */
+  name?: string
+  /** 是否将链接添加到“我的链接”历史记录，默认为 false。 */
+  addToLinkHistory?: boolean
+}
+
+/** 宿主内嵌播放器接口，仅微应用页面可用，事件脚本不注入。 */
+export interface XunleiHostPlayer {
+  /**
+   * 使用迅雷内嵌播放器播放任务文件或音视频资源链接。
+   * 播放记录和续播位置由播放器自动维护。
+   */
+  play(opts: TaskPlayOptions | UrlPlayOptions): Promise<void>
 }
 
 /** 宿主 UI 操作接口，仅微应用页面可用，事件脚本不注入。 */
@@ -840,19 +868,19 @@ export interface XunleiHostUi {
   pickDirectory(opts?: UiPickDirectoryOptions): Promise<UiPickDirectoryResult | null>
   /** 跳转到宿主任务列表页，可选高亮指定任务。 */
   openTaskList(opts?: UiOpenTaskListOptions): Promise<void>
-  /** 调起宿主播放器，播放指定任务文件。 */
-  play(opts: UiPlayOptions): Promise<void>
 }
 
 /**
- * 宿主环境与 UI 接口，与 info（微应用自身信息）相对。
- * env 读宿主状态，页面和事件脚本均可用；ui 操作宿主界面，仅页面可用。
+ * 宿主环境查询、界面操作和音视频播放接口。
+ * env 可用于页面和事件脚本；ui 和 player 仅页面可用。
  */
 export interface XunleiHost {
   /** 宿主环境信息。 */
   env: XunleiHostEnv
   /** 宿主 UI 操作，仅页面可用。 */
   ui: XunleiHostUi
+  /** 宿主内嵌播放器，仅页面可用。 */
+  player: XunleiHostPlayer
 }
 
 export interface Xunlei {
@@ -870,7 +898,7 @@ export interface Xunlei {
   events: XunleiEvents
   /** 运行时能力接口。 */
   runtime: XunleiRuntime
-  /** 宿主环境与 UI 接口。 */
+  /** 宿主环境、UI 与播放器接口。 */
   host: XunleiHost
 }
 

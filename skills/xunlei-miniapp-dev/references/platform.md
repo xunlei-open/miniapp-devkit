@@ -34,6 +34,7 @@ async function createDownload(url: string) {
 | `runtime.webview.*`                               | `webview`           | 未声明时 isAvailable 返回 false                                  |
 | `host.env.*`                                      | 无                  | 页面和事件脚本均可用                                             |
 | `host.ui.*`                                       | 无                  | 仅页面可用，事件脚本不注入                                       |
+| `host.player.play(...)`                           | 无                  | 仅页面可用，使用迅雷内嵌播放器                                   |
 | 直接网络请求                                      | `network`           | 同时需要 network.urls 匹配                                       |
 | storage / settings / info / logger / 事件注册     | 无                  | 仍受所在运行环境限制                                             |
 
@@ -48,7 +49,7 @@ async function createDownload(url: string) {
 - 页面维护分页参数 `offset` / `limit`。
 - `deleteFiles` 仅用于明确要求同时删除文件的功能，不默认打开。文件访问 URL 即取即用，不持久化。
 
-任务详情的 `Task.meta.res.files` 使用 `FileInfo`，包含名称、路径、大小、`download: boolean`（是否勾选下载）和 `status: TaskFileStatus`。文件状态为 `running | wait | error | done`，不包含任务的 `ready`、`pause` 状态。任务组的子任务使用相同结构；`onResolve` 解析结果使用独立的 `OnResolveFileInfo`，不包含 `download` 和 `status`。
+任务详情的 `Task.meta.res.files` 使用 `FileInfo`，包含名称、路径、大小、`download: boolean`（是否勾选下载）和 `status: TaskFileStatus`。文件状态包括 `running`（下载中）、`wait`（等待下载）、`error`（下载出错）和 `done`（下载完成）。任务组中各子任务的文件也使用 `FileInfo`。`onResolve` 的解析结果使用 `OnResolveFileInfo`：`req` 必填，`name`、`path` 和 `size` 可选。
 
 ## 网络与静态资源
 
@@ -71,9 +72,9 @@ async function createDownload(url: string) {
 
 `await storage.get(key)` 得到字符串，缺失时为 `''`；对象自行 JSON 序列化。`settings` 是按 `manifest.settings[].name` 注入的只读快照，未配置时可能为 `undefined`；设置 UI 由宿主生成，赋值不能更新持久化设置。
 
-## 宿主环境与 UI
+## 宿主环境、UI 与播放器
 
-`host.env.version()` 获取当前迅雷版本，`host.env.defaultDownloadDir()` 查询宿主默认下载目录，页面和事件脚本均可用；`host.ui` 操作宿主界面，仅页面可用。两者均无权限要求。用户修改下载目录后，后续查询返回新值，不要缓存当常量。深浅主题通过媒体查询自动跟随宿主，见 [主题适配](responsive-ui.md#主题适配)。
+`host.env.version()` 获取当前迅雷版本，`host.env.defaultDownloadDir()` 查询宿主默认下载目录，页面和事件脚本均可用；`host.ui` 操作宿主界面，`host.player` 调用宿主内嵌播放器，均仅页面可用，事件脚本不注入。这些接口均无权限要求。用户修改下载目录后，后续查询返回新值，不要缓存当常量。深浅主题通过媒体查询自动跟随宿主，见 [主题适配](responsive-ui.md#主题适配)。
 
 ```ts
 const xunleiVersion = await xunlei.host.env.version()
@@ -90,11 +91,22 @@ await xunlei.host.ui.openTaskList({ taskId: task.id })
 
 `pickDirectory` 用户取消时返回 `null`，不抛错，不要用 try/catch 区分取消；错误处理只留给真错误。`openTaskList` 的 `taskId` 不存在或列表中不可见时仅跳转、不高亮，不报错。
 
-`host.ui.play({ taskId, index? })` 调起宿主播放器，返回 `Promise<void>`。`taskId` 必填；`index` 可选，是文件在任务资源文件列表中的索引，从 0 开始；任务组内的文件使用对应子任务的 ID。
+`host.player.play(...)` 使用迅雷内嵌播放器，支持播放下载任务中的音视频和音视频资源链接，通过 `source` 指定播放来源。返回的 `Promise<void>` 在播放请求被接受时完成，此时媒体可能仍在加载。目标不存在或不支持播放时，Promise 拒绝，不会打开文件、目录或系统关联程序。
+
+- `source: 'task'`：`taskId` 必填。`fileIndex` 可选，表示文件在 `task.meta.res.files` 数组中的下标，从 0 开始；指定时播放该文件，省略时由宿主自动选择播放文件。任务组内指定文件时，使用对应子任务的 ID。
+- `source: 'url'`：`url` 必填，为宿主支持的音视频资源链接；`name` 可选，用作媒体展示名称。`addToLinkHistory` 默认为 false，设为 true 时将链接添加到“我的链接”历史记录。
+
+播放记录和续播位置由播放器自动维护。
 
 ```ts
-await xunlei.host.ui.play({ taskId: task.id })
-await xunlei.host.ui.play({ taskId: task.id, index: 0 })
+await xunlei.host.player.play({ source: 'task', taskId: task.id })
+await xunlei.host.player.play({ source: 'task', taskId: task.id, fileIndex: 0 })
+await xunlei.host.player.play({
+  source: 'url',
+  url: 'https://example.com/video.mp4',
+  name: '示例视频',
+  addToLinkHistory: true,
+})
 ```
 
 ## 导出 Blob
