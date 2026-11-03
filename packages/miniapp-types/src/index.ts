@@ -43,6 +43,8 @@ export type MiniappPermission =
   | 'tasks.update'
   | 'tasks.delete'
   | 'blob'
+  | 'clipboard.read'
+  | 'clipboard.write'
   | 'webview'
 
 export interface MiniappNetworkManifest {
