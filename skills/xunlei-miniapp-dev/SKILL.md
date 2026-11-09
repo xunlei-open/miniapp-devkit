@@ -12,7 +12,7 @@ description: 使用 miniapp-devkit 创建、开发、调试和打包迅雷微应
 ## 参考文档
 
 - 创建工程、配置、调试、打包与安装：[工程与交付](references/project.md)。
-- 配置资源加载、Worker/WASM 或判断主页面与辅助页面差异：[运行环境与构建选择](references/runtime.md)。
+- 接入 Node.js/npm 库、配置 Node 垫片、资源加载、Worker/WASM 或判断主页面与辅助页面差异：[运行环境与构建选择](references/runtime.md)。
 - 编写或调整 UI：[响应式布局](references/responsive-ui.md)，包含默认 900 × 600、无应用级 Header 和一屏布局约定。
 - 下载任务、存储、网络、Blob、辅助 WebView：[平台 API](references/platform.md)。
 - 跟随宿主切换深浅主题：[主题适配](references/responsive-ui.md#主题适配)。
@@ -33,7 +33,9 @@ description: 使用 miniapp-devkit 创建、开发、调试和打包迅雷微应
 
 ## 最佳实践
 
+- **版本管理**：除非用户明确要求，否则不要主动修改 `manifest.json` 的 `version` 字段；功能开发、修复、构建或打包均不视为更新版本的授权。
 - **构建配置**：优先使用 devkit 默认配置和 Vite 原生能力；业务需求或具体兼容问题需要时再增加自定义适配。
+- **Node.js 库**：微应用可通过 Node 垫片接入兼容的 npm 库。遇到 Node 依赖时先检查工程已有的垫片和依赖实际使用的 API，按需使用 `vite-plugin-node-polyfills` 等构建适配并验证；不要仅因运行于 WebView 就判定 Node 库不可用。配置与能力边界见 [Node.js 库与垫片](references/runtime.md#nodejs-库与垫片)。
 - **持久化设置**：优先考虑在应用内开发设置 UI，并通过 `xunlei.storage` 读写持久化数据。`manifest.settings` 声明式配置一般用于用户不想开发设置 UI，或需求简单且用户明确指定使用的场景；具体 API 行为见 [存储和设置](references/platform.md#存储和设置)。
 - **数据获取**：普通数据接口优先使用 `fetch`；需要目标站点页面状态、登录或执行网页脚本时再使用辅助 WebView，并在结束后关闭，见 [辅助 WebView](references/platform.md#辅助-webview)。
 - **图片展示**：远程图片通过允许的 `fetch` 请求转为 Blob，再用浏览器 `URL.createObjectURL` 生成 `<img src>`，不再使用时调用 `URL.revokeObjectURL` 释放，见 [网络与静态资源](references/platform.md#网络与静态资源)。

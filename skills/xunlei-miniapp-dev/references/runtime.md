@@ -20,6 +20,31 @@
 
 主页面支持跨域数据请求，但仍受权限和资源加载规则约束，不能因此直接加载任意远程脚本。辅助页面按目标网站的浏览器环境运行。
 
+## Node.js 库与垫片
+
+微应用可以通过构建时 Node 垫片使用兼容的 Node.js/npm 库，不必只寻找标注为浏览器版的库。先检查应用的 `package.json`、构建配置及依赖的实际调用路径，沿用已有垫片；缺失时可按需接入 `vite-plugin-node-polyfills`。垫片不是 devkit 默认注入的完整 Node.js 运行时。
+
+```ts
+// miniapp.config.ts：保留工程已有 modules 和其他 Vite 配置。
+import { defineConfig } from '@xunlei-open/miniapp'
+import { nodePolyfills } from 'vite-plugin-node-polyfills'
+
+export default defineConfig({
+  vite: {
+    plugins: [nodePolyfills({ protocolImports: true })],
+  },
+})
+```
+
+将插件声明在使用它的应用工作区；已有普通 Vite 配置或独立依赖 bundle 时，将插件放在实际负责该依赖的构建中。`protocolImports` 用于适配 `node:` 前缀，`Buffer`、`process` 等全局和核心模块的支持范围以所用插件版本为准。
+
+- 垫片可提供部分 Buffer、流、加密、路径等能力，但不能凭空提供本机文件系统、子进程、原生扩展或监听端口。只针对实际使用的功能验证兼容性；不要用静默空实现掩盖必需能力。
+- 网络库应选择适用的浏览器 adapter，必要时适配到 `fetch`；Node HTTP/HTTPS、代理、Cookie 和浏览器请求的行为并不等价，网络权限与目标页面跨域规则仍然适用。检查依赖是否加载了另一份 HTTP 客户端，避免 adapter 只替换到未被使用的实例。
+- Node 垫片不会赋予主页面目标站点的登录态。需要已有网页登录会话时，可以在辅助 WebView 内运行打包好的依赖；登录凭据和传输方式按该功能的会话边界设计。
+- 先验证类型检查和生产构建，再在目标宿主验证真实调用、分页、超时与取消。构建成功或浏览器替身测试通过不代表所有 Node API 均可用。
+
+辅助 WebView 的 `execute()` 不继承主页面的 npm 依赖或 Node 垫片。依赖需连同垫片打包为自包含脚本；独立 bundle 可用 Vite 的 IIFE 库模式。`execute()` 接受函数或表达式，执行完整 bundle 时用 IIFE 包成表达式，例如 `(()=>{ /* 打包代码 */; return true })()`，并确认初始化结果。不要直接传入带顶层声明的整段程序或未经打包的 `?raw` 源码。
+
 ## Worker 与 WASM
 
 ```ts

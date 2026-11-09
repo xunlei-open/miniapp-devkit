@@ -812,7 +812,7 @@ export interface XunleiRuntime {
 
 /** 宿主环境信息查询接口，页面和事件脚本均可用。 */
 export interface XunleiHostEnv {
-  /** 获取当前迅雷版本。 */
+  /** 获取当前迅雷版本，示例：25.1.44.5464 */
   version(): Promise<string>
   /**
    * 宿主默认下载目录，绝对路径。
