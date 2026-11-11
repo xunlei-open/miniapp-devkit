@@ -209,7 +209,11 @@ export type OptsExtra = HttpOptsExtra
 export interface Options {
   /** 指定保存的文件名。 */
   name?: string
-  /** 指定文件保存路径，当未指定时使用宿主默认下载目录，如果是任务组里面的子任务只支持相对路径。 */
+  /**
+   * 保存目录，支持绝对路径和相对路径。未指定或为空时使用迅雷默认下载目录。
+   * 相对路径以迅雷默认下载目录为基准；组内子任务则以组目录为基准。
+   * 组内子任务未指定目录时直接保存到组目录，不允许使用盘符或 `..` 路径段。
+   */
   path?: string
   /** 下载的附加选项。 */
   extra?: OptsExtra
@@ -273,7 +277,7 @@ export type TaskDetailResult = Task | TaskGroup
 
 export interface TaskGroup extends Omit<Task, 'type' | 'protocol' | 'meta'> {
   type: 'group'
-  /** path 为父目录，name 为组目录名。 */
+  /** 组保存目录和名称，path 为包含组名的完整路径。 */
   opts: { path: string; name: string }
   /** 当前仍存在的子任务，不嵌套任务组。 */
   children: Task[]
@@ -325,11 +329,11 @@ export interface TaskCreateInput {
 
 /** 创建一组共享下载目录的任务，复用 tasks.create 权限。 */
 export interface TaskCreateGroupInput {
-  /** 单个目录名，不允许路径分隔符、. 或 ..。 */
+  /** 组目录名，不允许包含路径分隔符，也不能为 `.` 或 `..`。 */
   name: string
-  /** 要创建的子任务列表。 */
+  /** 子任务列表，各子任务的 opts.path 相对于组目录。 */
   tasks: TaskCreateInput[]
-  /** path 为父目录；未指定时使用宿主默认下载目录。 */
+  /** 任务组选项，opts.path 指定组目录的父目录。 */
   opts?: Options
 }
 

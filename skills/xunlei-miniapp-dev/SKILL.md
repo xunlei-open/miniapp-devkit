@@ -14,7 +14,8 @@ description: 使用 miniapp-devkit 创建、开发、调试和打包迅雷微应
 - 创建工程、配置、调试、打包与安装：[工程与交付](references/project.md)。
 - 接入 Node.js/npm 库、配置 Node 垫片、资源加载、Worker/WASM 或判断主页面与辅助页面差异：[运行环境与构建选择](references/runtime.md)。
 - 编写或调整 UI：[响应式布局](references/responsive-ui.md)，包含默认 900 × 600、无应用级 Header 和一屏布局约定。
-- 下载任务、存储、网络、Blob、辅助 WebView：[平台 API](references/platform.md)。
+- 下载任务与目录、任务组、存储、网络、Blob、辅助 WebView：[平台 API](references/platform.md)。
+- 实现 Blob 下载流时，注意 [重复读取与取消](references/platform.md#下载流的重复读取与取消)。
 - 跟随宿主切换深浅主题：[主题适配](references/responsive-ui.md#主题适配)。
 - 读取下载目录或调用宿主 UI：[宿主环境与 UI](references/platform.md#宿主环境与-ui)。
 - 自动解析链接或处理下载生命周期：[事件脚本](references/events.md)。

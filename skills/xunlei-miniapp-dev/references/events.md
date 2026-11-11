@@ -70,12 +70,12 @@ onResolve 使用普通 Request，不暴露修改方法；首次创建的下载�
 
 ## 生命周期能力
 
-| 事件 | 可用操作 |
-| --- | --- |
-| onResolve | 读取 `ctx.req`，填写 `ctx.res` |
-| onStart | 通过 `task.meta.req` 修改 URL、标签和请求头 |
-| onError | 修改请求并调用 `continue()` 恢复任务 |
-| onDone | 读取任务结果 |
+| 事件      | 可用操作                                    |
+| --------- | ------------------------------------------- |
+| onResolve | 读取 `ctx.req`，填写 `ctx.res`              |
+| onStart   | 通过 `task.meta.req` 修改 URL、标签和请求头 |
+| onError   | 修改请求并调用 `continue()` 恢复任务        |
+| onDone    | 读取任务结果                                |
 
 控制方法使用 `await`，由事件声明授权；网络、blob、webview 仍需各自权限。`MessageError` 在 onResolve 中会显示用户提示。
 
@@ -101,5 +101,7 @@ xunlei.events.onError(async ({ task }) => {
 事件无 DOM、页面导航，也不提供 Node.js 文件系统。事件运行时与页面一样暴露完整的 `xunlei.tasks`，调用需声明对应的任务权限，缺少权限返回 `PERMISSION_DENIED`；事件上下文中的任务控制方法由事件声明授权，不受 `tasks.*` 权限控制。需要 DOM 解析时在辅助 WebView 的 execute 中执行，不直接使用 document。
 
 每次触发创建独立运行时，完成后回收；跨触发数据放 xunlei.storage，不依赖模块缓存或常驻循环。单次事件总时限约 60 秒，给网络和等待操作设置合理超时，错误恢复有界重试。活跃 blob 数据源可延续运行时，不要创建下载数据后立即撤销 URL。
+
+`onStart` 换址后，任务详情仍可能显示原始 URL，不要仅凭地址不同清理下载源；换址失败时应回收本次资源。流的生命周期见 [下载流的重复读取与取消](platform.md#下载流的重复读取与取消)。不支持续传时，仅对零字节失败做有界重试，已有部分文件应从头重新创建任务。
 
 排查事件不触发时，检查产物脚本存在、注册同步完成、URL 与标签匹配、清单已重载；EVENT_TIMEOUT 查请求和等待时长，PERMISSION_DENIED 查权限，网络拦截查实际请求地址。
