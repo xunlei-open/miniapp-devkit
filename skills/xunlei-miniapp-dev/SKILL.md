@@ -1,6 +1,6 @@
 ---
 name: xunlei-miniapp-dev
-description: 使用 miniapp-devkit 创建、开发、调试和打包迅雷微应用，接入 xunlei API 或下载事件，生成应用图标与商城上架图片。
+description: 使用 miniapp-devkit 创建、开发、调试和打包迅雷微应用，接入 xunlei API 或下载事件，生成应用图标与商城上架图片，指导用户上传 ZIP 上架。
 ---
 
 # 迅雷微应用开发
@@ -11,7 +11,7 @@ description: 使用 miniapp-devkit 创建、开发、调试和打包迅雷微应
 
 ## 参考文档
 
-- 创建工程、配置、调试、打包与安装：[工程与交付](references/project.md)。
+- 创建工程、配置、调试、打包、安装与上架：[工程与交付](references/project.md)。
 - 接入 Node.js/npm 库、配置 Node 垫片、资源加载、Worker/WASM 或判断主页面与辅助页面差异：[运行环境与构建选择](references/runtime.md)。
 - 编写或调整 UI：[响应式布局](references/responsive-ui.md)，包含默认 900 × 600、无应用级 Header 和一屏布局约定。
 - 下载任务与目录、任务组、存储、网络、Blob、辅助 WebView：[平台 API](references/platform.md)。
@@ -45,9 +45,13 @@ description: 使用 miniapp-devkit 创建、开发、调试和打包迅雷微应
 
 创建应用时完成核心功能、相关检查和可加载的产物：开发调试使用 `dist/`，生产构建使用 `output/`，ZIP 默认输出到 `output/`；已有工程以其 devkit 版本与配置为准，修改按影响范围验证。构建和打包不自动做类型检查，浏览器预览也不能替代宿主验证。
 
+开发前检查 Node.js 环境并安装项目依赖。完成开发后，默认启动开发服务并确认就绪，保持运行供用户体验；已有服务可用时复用。向用户提供实际开发输出目录的完整路径（默认 `dist`），引导其在迅雷中通过「微应用 → 管理 → 加载本地应用 → 选择 dist 目录」加载，再从「我的应用」打开，给出与本次需求对应的功能验证步骤。说明页面支持热重载，修改后即时生效；清单变更按[调试和打包](references/project.md#调试和打包)处理。服务未成功启动时说明具体阻碍，不声称已可体验。
+
 交付说明功能、实际产物路径、已执行检查及待做的宿主验证；提供 [本地加载与 ZIP 安装](references/project.md#安装体验指引) 两种体验方式。没有支持微应用的 Windows 迅雷客户端时，明确说明未完成宿主联调。
 
 首次交付新应用或用户准备上架时，主动说明可按本 Skill 的指南继续生成应用图标和商城图片，并根据现有素材给出建议：
 
 - 缺少正式图标时，建议按[图标生成指南](references/icon.md)制作并接入应用。
 - 准备上架且缺少商城图片时，建议按[商城图片生成指南](references/marketplace-images.md)制作 1 张 640 × 360 封面和 3–5 张 1280 × 768 宣传图；暂未准备上架时，简要介绍这项能力即可。
+
+用户询问发布或准备上架、或已完成上架所需的打包与素材准备时，按[上架指引](references/project.md#上架指引)提供开放平台发布管理入口，引导用户打开页面并上传生产 ZIP，同时给出实际 ZIP 路径。

@@ -1,6 +1,6 @@
 {
   "name": "@xunlei-open/miniapp",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Unified development CLI for Xunlei Miniapps",
   "type": "module",
   "module": "./dist/index.mjs",
