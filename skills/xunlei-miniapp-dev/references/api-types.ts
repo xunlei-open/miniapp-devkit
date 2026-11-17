@@ -45,6 +45,7 @@ export type MiniappPermission =
   | 'tasks.detail'
   | 'tasks.file.access'
   | 'tasks.update'
+  | 'tasks.rename'
   | 'tasks.delete'
   | 'blob'
   | 'clipboard.read'
@@ -369,6 +370,14 @@ export interface TaskUpdateInput {
   }
 }
 
+/** 已完成任务更名，同时修改对应的磁盘文件或根目录。 */
+export interface TaskRenameInput {
+  /** 普通任务、任务组或组内子任务的 ID；不接受 BT 子文件索引。 */
+  id: string
+  /** 新文件名或目录名，不接受路径，保留合法空格。 */
+  name: string
+}
+
 export interface TaskDeleteInput {
   id: string
   deleteFiles?: boolean
@@ -500,6 +509,8 @@ export interface XunleiTasks {
   detail(input: TaskDetailInput): Promise<TaskDetailResult>
   /** 更新任务标签；当前仅支持 req.labels。 */
   update(input: TaskUpdateInput): Promise<Task>
+  /** 更名已完成任务并返回最新详情，需 tasks.rename 权限；BT 多文件任务仅修改根目录名。 */
+  rename(input: TaskRenameInput): Promise<TaskDetailResult>
   /** 删除任务，并按参数决定是否删除文件。 */
   delete(input: TaskDeleteInput): Promise<TaskDeleteResult>
 }
