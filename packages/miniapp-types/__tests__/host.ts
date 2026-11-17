@@ -64,3 +64,16 @@ export function checkInvalidPlaybackOptions(player: XunleiHostPlayer) {
   // @ts-expect-error 链接历史选项必须是布尔值。
   player.play({ source: 'url', url: 'https://example.com/video.mp4', addToLinkHistory: 'true' })
 }
+
+/** 检查打开目录接口的必填路径和返回类型。 */
+export function checkOpenDirectoryOptions(ui: XunleiHostUi) {
+  const result: Promise<void> = ui.openDirectory({ path: 'D:\\Downloads' })
+  const globalResult: Promise<void> = xunlei.host.ui.openDirectory({ path: 'D:\\Downloads' })
+  // @ts-expect-error 打开目录的参数必填。
+  ui.openDirectory()
+  // @ts-expect-error 必须提供 path。
+  ui.openDirectory({})
+  // @ts-expect-error 路径必须是字符串。
+  ui.openDirectory({ path: 1 })
+  return { result, globalResult }
+}

@@ -887,6 +887,8 @@ export interface XunleiHostPlayer {
 export interface XunleiHostUi {
   /** 打开宿主目录选择器；用户取消时返回 null，不视为错误。 */
   pickDirectory(opts?: UiPickDirectoryOptions): Promise<UiPickDirectoryResult | null>
+  /** 在系统文件管理器中打开已存在的目录；path 为非空绝对路径，失败时 reject。 */
+  openDirectory(options: { path: string }): Promise<void>
   /** 跳转到宿主任务列表页，可选高亮指定任务。 */
   openTaskList(opts?: UiOpenTaskListOptions): Promise<void>
 }
