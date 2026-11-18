@@ -64,3 +64,31 @@ export function checkInvalidPlaybackOptions(player: XunleiHostPlayer) {
   // @ts-expect-error 链接历史选项必须是布尔值。
   player.play({ source: 'url', url: 'https://example.com/video.mp4', addToLinkHistory: 'true' })
 }
+
+/** 检查打开目录接口的必填路径和返回类型。 */
+export function checkOpenDirectoryOptions(ui: XunleiHostUi) {
+  const result: Promise<void> = ui.openDirectory({ path: 'D:\\Downloads' })
+  const globalResult: Promise<void> = xunlei.host.ui.openDirectory({ path: 'D:\\Downloads' })
+  // @ts-expect-error 打开目录的参数必填。
+  ui.openDirectory()
+  // @ts-expect-error 必须提供 path。
+  ui.openDirectory({})
+  // @ts-expect-error 路径必须是字符串。
+  ui.openDirectory({ path: 1 })
+  return { result, globalResult }
+}
+
+/** 检查打开任务文件的必填任务标识、文件下标和返回类型。 */
+export function checkOpenTaskFileOptions(ui: XunleiHostUi) {
+  const result: Promise<void> = ui.openTaskFile({ taskId: '20', fileIndex: 0 })
+  const globalResult: Promise<void> = xunlei.host.ui.openTaskFile({ taskId: '20', fileIndex: 0 })
+  // @ts-expect-error 打开任务文件的参数必填。
+  ui.openTaskFile()
+  // @ts-expect-error 文件下标必填。
+  ui.openTaskFile({ taskId: '20' })
+  // @ts-expect-error 任务标识必须为字符串。
+  ui.openTaskFile({ taskId: 20, fileIndex: 0 })
+  // @ts-expect-error 文件下标必须为数字。
+  ui.openTaskFile({ taskId: '20', fileIndex: '0' })
+  return { result, globalResult }
+}

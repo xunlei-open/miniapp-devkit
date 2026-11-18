@@ -23,3 +23,11 @@ import type { MiniappManifest, OnResolveContext } from '@xunlei-open/miniapp-typ
 ```
 
 本包只提供类型，运行时能力由迅雷宿主注入。API 用法见[官方文档](https://open.xunlei.com/doc/miniapp/platform-api)。
+
+在微应用页面中，用系统默认程序打开已完成的下载文件：
+
+```ts
+await xunlei.host.ui.openTaskFile({ taskId: '123', fileIndex: 0 })
+```
+
+`fileIndex` 是该任务 `meta.res.files` 数组中的下标，从 0 开始；任务组中的文件使用对应子任务 ID。该接口无需声明权限。返回的 `Promise<void>` 在系统接受打开请求后完成，不代表文件已被查看；文件未完成、不存在、无法访问或宿主不支持该能力时 reject。

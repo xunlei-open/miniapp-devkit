@@ -41,6 +41,8 @@ export type MiniappPermission =
   | 'tasks.detail'
   | 'tasks.file.access'
   | 'tasks.update'
+  | 'tasks.rename'
+  | 'tasks.move'
   | 'tasks.delete'
   | 'blob'
   | 'clipboard.read'
@@ -365,6 +367,22 @@ export interface TaskUpdateInput {
   }
 }
 
+/** 已完成任务更名，同时修改对应的磁盘文件或根目录。 */
+export interface TaskRenameInput {
+  /** 普通任务、任务组或组内子任务的 ID；不接受 BT 子文件索引。 */
+  id: string
+  /** 新文件名或目录名，不接受路径，保留合法空格。 */
+  name: string
+}
+
+/** 移动已完成的独立任务或整个任务组。 */
+export interface TaskMoveInput {
+  /** 独立任务或任务组的 ID；不接受组内子任务或 BT 子文件索引。 */
+  id: string
+  /** 目标父目录，必须为非空绝对路径；任务名称保持不变。 */
+  path: string
+}
+
 export interface TaskDeleteInput {
   id: string
   deleteFiles?: boolean
@@ -496,6 +514,10 @@ export interface XunleiTasks {
   detail(input: TaskDetailInput): Promise<TaskDetailResult>
   /** 更新任务标签；当前仅支持 req.labels。 */
   update(input: TaskUpdateInput): Promise<Task>
+  /** 更名已完成任务并返回最新详情，需 tasks.rename 权限；BT 多文件任务仅修改根目录名。 */
+  rename(input: TaskRenameInput): Promise<TaskDetailResult>
+  /** 移动已完成任务并返回最新详情，需 tasks.move 权限；任务组整体移动。 */
+  move(input: TaskMoveInput): Promise<TaskDetailResult>
   /** 删除任务，并按参数决定是否删除文件。 */
   delete(input: TaskDeleteInput): Promise<TaskDeleteResult>
 }
@@ -872,6 +894,10 @@ export interface XunleiHostPlayer {
 export interface XunleiHostUi {
   /** 打开宿主目录选择器；用户取消时返回 null，不视为错误。 */
   pickDirectory(opts?: UiPickDirectoryOptions): Promise<UiPickDirectoryResult | null>
+  /** 在系统文件管理器中打开已存在的目录；path 为非空绝对路径，失败时 reject。 */
+  openDirectory(options: { path: string }): Promise<void>
+  /** 用系统默认程序打开指定的已完成任务文件；系统接受请求后完成，文件不可用或打开失败时 reject。 */
+  openTaskFile(options: TaskFileAccessInput): Promise<void>
   /** 跳转到宿主任务列表页，可选高亮指定任务。 */
   openTaskList(opts?: UiOpenTaskListOptions): Promise<void>
 }

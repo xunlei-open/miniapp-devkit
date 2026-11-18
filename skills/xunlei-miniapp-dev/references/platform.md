@@ -97,6 +97,15 @@ await xunlei.host.ui.openTaskList({ taskId: task.id })
 
 `pickDirectory` 用户取消时返回 `null`，不抛错，不要用 try/catch 区分取消；错误处理只留给真错误。`openTaskList` 的 `taskId` 不存在或列表中不可见时仅跳转、不高亮，不报错。
 
+`host.ui.openDirectory({ path })` 在系统文件管理器中打开已存在的目录，返回 `Promise<void>`，仅页面可用。传入非空绝对文件系统路径，不能包含 NUL 字符，也不接受 URL。目录不存在、不可访问、目标是文件或系统打开失败时 reject。打开任务目录应使用任务详情提供的实际保存路径，不能用当前默认下载目录替代。
+
+```ts
+const selected = await xunlei.host.ui.pickDirectory()
+if (selected) {
+  await xunlei.host.ui.openDirectory({ path: selected.path })
+}
+```
+
 `host.player.play(...)` 使用迅雷内嵌播放器，支持播放下载任务中的音视频和音视频资源链接，通过 `source` 指定播放来源。返回的 `Promise<void>` 在播放请求被接受时完成，此时媒体可能仍在加载。目标不存在或不支持播放时，Promise 拒绝，不会打开文件、目录或系统关联程序。
 
 - `source: 'task'`：`taskId` 必填。`fileIndex` 可选，表示文件在 `task.meta.res.files` 数组中的下标，从 0 开始；指定时播放该文件，省略时由宿主自动选择播放文件。任务组内指定文件时，使用对应子任务的 ID。
