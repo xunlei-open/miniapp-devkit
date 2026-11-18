@@ -900,6 +900,8 @@ export interface XunleiHostUi {
   pickDirectory(opts?: UiPickDirectoryOptions): Promise<UiPickDirectoryResult | null>
   /** 在系统文件管理器中打开已存在的目录；path 为非空绝对路径，失败时 reject。 */
   openDirectory(options: { path: string }): Promise<void>
+  /** 用系统默认程序打开指定的已完成任务文件；系统接受请求后完成，文件不可用或打开失败时 reject。 */
+  openTaskFile(options: TaskFileAccessInput): Promise<void>
   /** 跳转到宿主任务列表页，可选高亮指定任务。 */
   openTaskList(opts?: UiOpenTaskListOptions): Promise<void>
 }
