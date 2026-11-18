@@ -34,6 +34,8 @@ async function createDownload(url: string) {
 | `tasks.list({ offset?, limit?, status?, sort? })` | `tasks.list`        | 返回 `{ ids, total }`，不是任务数组                              |
 | `tasks.detail({ id })`                            | `tasks.detail`      | 返回 `Task \| TaskGroup`                                         |
 | `tasks.update({ id, req: { labels } })`           | `tasks.update`      | 当前只支持更新标签                                               |
+| `tasks.rename({ id, name })`                      | `tasks.rename`      | 更名已完成任务及磁盘文件或根目录，返回最新详情                   |
+| `tasks.move({ id, path })`                        | `tasks.move`        | 移动已完成的独立任务或整个任务组，返回最新详情                   |
 | `tasks.delete({ id, deleteFiles? })`              | `tasks.delete`      | deleteFiles 默认 false                                           |
 | `tasks.file.access({ taskId, fileIndex })`        | `tasks.file.access` | 返回只读临时 URL                                                 |
 | `runtime.blob.*`                                  | `blob`              | 用于下载时还需 tasks.create                                      |
@@ -51,7 +53,10 @@ async function createDownload(url: string) {
 ### 任务操作
 
 - `tasks.update` 仅支持更新 `req.labels`。
+- `tasks.rename` 仅用于已完成任务，同时修改对应磁盘文件或根目录。`id` 可为普通任务、任务组或组内子任务；`name` 是单个文件名或目录名，不接受路径，保留合法空格。BT 多文件任务仅修改根目录名，不支持传 `fileIndex` 更名子文件。需单独声明 `tasks.rename` 权限。
+- `tasks.move` 仅用于已完成的独立任务或整个任务组，不接受组内子任务或 BT 子文件索引。`path` 是非空绝对路径的目标父目录，任务名称保持不变；不要套用创建任务时的相对路径规则。需单独声明 `tasks.move` 权限。页面可通过 `host.ui.pickDirectory()` 获取目标目录，取消时不发起移动。
 - 按 `detail.type` 区分任务：单任务读取 `meta`、`protocol`，任务组读取 `children`。
+- `tasks.rename` 和 `tasks.move` 均返回 `TaskDetailResult`（`Task | TaskGroup`），同样按 `type` 收窄，并使用返回的最新详情更新页面中的名称、路径和子任务。
 - 页面维护分页参数 `offset` / `limit`。
 - `deleteFiles` 仅用于明确要求同时删除文件的功能，不默认打开。文件访问 URL 即取即用，不持久化。
 
@@ -105,6 +110,14 @@ if (selected) {
   await xunlei.host.ui.openDirectory({ path: selected.path })
 }
 ```
+
+`host.ui.openTaskFile({ taskId, fileIndex })` 用系统默认程序打开指定的已完成下载文件，仅页面可用，无需声明权限。`taskId` 为文件所属任务 ID；任务组中的文件使用对应子任务 ID。`fileIndex` 必填，是该任务 `meta.res.files` 数组中从 0 开始的下标；展示时若过滤或排序文件，仍传原数组下标。
+
+```ts
+await xunlei.host.ui.openTaskFile({ taskId: task.id, fileIndex: 0 })
+```
+
+返回的 `Promise<void>` 在系统接受打开请求后完成，不代表文件已被查看；文件未完成、不存在、无法访问或宿主不支持该能力时 reject。需要在应用内读取文件内容时使用 `tasks.file.access` 并声明其权限；使用迅雷内嵌播放器播放音视频时使用下述 `host.player.play`。
 
 `host.player.play(...)` 使用迅雷内嵌播放器，支持播放下载任务中的音视频和音视频资源链接，通过 `source` 指定播放来源。返回的 `Promise<void>` 在播放请求被接受时完成，此时媒体可能仍在加载。目标不存在或不支持播放时，Promise 拒绝，不会打开文件、目录或系统关联程序。
 
