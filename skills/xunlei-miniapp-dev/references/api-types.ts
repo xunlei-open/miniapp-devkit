@@ -1000,17 +1000,18 @@ export interface XunleiHostUi {
   /** 打开宿主目录选择器；用户取消时返回 null，不视为错误。 */
   pickDirectory(opts?: UiPickDirectoryOptions): Promise<UiPickDirectoryResult | null>
   /**
-   * 在系统文件管理器中打开已存在的目录，可选中该目录的直属文件；路径须为非空绝对路径。
+   * 在系统文件管理器中打开已存在的目录，可按文件名选中直属文件；path 须为非空绝对路径。
    * 校验或目录打开失败时 reject；选中文件时完成仅表示已调用系统定位，不保证界面已选中。
    * @since 迅雷客户端 >= 25.1.60
    */
   openDirectory(opts: {
     path: string
     /**
-     * 需要选中的已存在普通文件，必须直接位于 path 目录中。
+     * path 目录下需要选中的已存在普通文件的名称，保留原始名称及扩展名。
+     * 须为非空文件名，不能是 . 或 ..，不能包含 /、\、: 或 NUL 字符。
      * @since 迅雷客户端 >= 25.1.60
      */
-    selectFilePath?: string
+    selectFileName?: string
   }): Promise<void>
   /**
    * 用系统默认程序打开指定的已完成任务文件；系统接受请求后完成，文件不可用或打开失败时 reject。
