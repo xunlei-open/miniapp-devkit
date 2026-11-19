@@ -47,7 +47,15 @@ export type MiniappPermission =
   | 'tasks.update'
   | 'tasks.delete'
   | 'blob'
+  /**
+   * 允许页面读取剪贴板内容。
+   * @since 迅雷客户端 >= 25.1.44
+   */
   | 'clipboard.read'
+  /**
+   * 允许页面写入剪贴板内容。
+   * @since 迅雷客户端 >= 25.1.44
+   */
   | 'clipboard.write'
   | 'webview'
 
@@ -64,6 +72,11 @@ export interface MiniappEntryManifest {
   type?: MiniappEntryType
   /** 微应用页面（miniapp）使用包内相对地址；内嵌网页（in_app_webview）使用完整的 HTTP 或 HTTPS 地址。 */
   url: string
+  /**
+   * 关联到此入口的文件后缀，如 .jpg、.tar.gz；忽略大小写，默认 []。非空列表仅支持 miniapp 入口。
+   * @since 迅雷客户端 >= 25.1.60
+   */
+  file_associations?: string[]
 }
 
 export interface MiniappRepositoryManifest {
@@ -118,7 +131,10 @@ export type Protocol = 'http' | 'bt' | 'ed2k'
 
 export type TaskStatus = 'ready' | 'running' | 'pause' | 'wait' | 'error' | 'done'
 
-/** 文件下载状态：running 下载中，wait 等待下载，error 下载出错，done 下载完成。 */
+/**
+ * 文件下载状态：running 下载中，wait 等待下载，error 下载出错，done 下载完成。
+ * @since 迅雷客户端 >= 25.1.44
+ */
 export type TaskFileStatus = Exclude<TaskStatus, 'ready' | 'pause'>
 
 /** 当前迅雷宿主支持的 HTTP 请求头；运行时名称透传，具体适配由宿主负责。 */
@@ -184,9 +200,15 @@ export interface FileInfo {
   path: string
   /** 文件大小，单位为字节。 */
   size: number
-  /** 是否勾选下载。 */
+  /**
+   * 是否勾选下载。
+   * @since 迅雷客户端 >= 25.1.44
+   */
   download: boolean
-  /** 文件当前的下载状态。 */
+  /**
+   * 文件当前的下载状态。
+   * @since 迅雷客户端 >= 25.1.44
+   */
   status: TaskFileStatus
 }
 
@@ -224,7 +246,10 @@ export interface TaskProgress {
   downloaded: number
 }
 
-/** 各下载来源的累计下载量，单位均为字节。 */
+/**
+ * 各下载来源的累计下载量，单位均为字节。
+ * @since 迅雷客户端 >= 25.1.40
+ */
 export interface TaskStats {
   /** 从原始地址下载的大小。 */
   originSize: number
@@ -258,7 +283,10 @@ export interface Task {
   status: TaskStatus
   /** 任务进度。 */
   progress: TaskProgress
-  /** 当前任务的各下载来源统计。 */
+  /**
+   * 当前任务的各下载来源统计。
+   * @since 迅雷客户端 >= 25.1.40
+   */
   stats: TaskStats
   /** 任务总大小，单位为字节。 */
   size: number
@@ -316,9 +344,15 @@ export interface MutateOnErrorTaskGroup extends Omit<TaskGroup, 'children'> {
 export interface TaskCreateInput {
   req: Request
   opts?: Options & {
-    /** 是否创建后台任务，不显示在宿主界面的任务列表中；当前仅 tasks.create 的 HTTP(S) 单任务支持。 */
+    /**
+     * 是否创建后台任务，不显示在宿主界面的任务列表中；当前仅 tasks.create 的 HTTP(S) 单任务支持。
+     * @since 迅雷客户端 >= 25.1.40
+     */
     background?: boolean
-    /** 任务大小，用于预设任务文件大小，单位为字节；当前仅 tasks.create 的 HTTP(S) 单任务支持。*/
+    /**
+     * 任务大小，用于预设任务文件大小，单位为字节；当前仅 tasks.create 的 HTTP(S) 单任务支持。
+     * @since 迅雷客户端 >= 25.1.44
+     */
     size?: number
   }
 }
@@ -803,7 +837,39 @@ export interface XunleiRuntimeBlob {
   revokeObjectURL(url: string): Promise<void>
 }
 
+/**
+ * 宿主从下载任务打开微应用时传入的参数，用于冷启动和已有页面的再次唤起。
+ * @since 迅雷客户端 >= 25.1.60
+ */
+export interface MiniappOpenArgs {
+  from: 'task'
+  /** 任务标识；任务组内指定文件时使用对应子任务的 ID。 */
+  taskId: string
+  /** 文件在 task.meta.res.files 数组中的下标，从 0 开始。 */
+  fileIndex: number
+}
+
+/**
+ * 微应用页面冷启动时的初始打开参数；普通打开时为空对象。
+ * @since 迅雷客户端 >= 25.1.60
+ */
+export type MiniappArgs = MiniappOpenArgs | Record<string, never>
+
+/** 运行时提供的页面打开参数、本地数据源和辅助 WebView 能力。 */
 export interface XunleiRuntime {
+  /**
+   * 读取微应用页面冷启动时的初始打开参数；普通打开和事件脚本返回 {}。
+   * 已有页面再次唤起时，新参数通过 onNewArgs 交付，不会覆盖此方法返回的初始参数。
+   * @since 迅雷客户端 >= 25.1.60
+   */
+  getArgs(): Promise<MiniappArgs>
+  /**
+   * 接收已有微应用页面再次唤起时的新打开参数，不回放冷启动时的初始参数。
+   * 仅在宿主再次带参打开页面时通知；普通无参唤起或仅切回页面不会触发，不能用作通用的页面显示或恢复事件。
+   * 返回取消订阅函数；宿主不等待回调中的异步业务完成。
+   * @since 迅雷客户端 >= 25.1.60
+   */
+  onNewArgs(handler: (args: MiniappOpenArgs) => void | Promise<void>): Promise<() => void>
   blob: XunleiRuntimeBlob
   webview: XunleiRuntimeWebview
 }
@@ -812,7 +878,10 @@ export interface XunleiRuntime {
 
 /** 宿主环境信息查询接口，页面和事件脚本均可用。 */
 export interface XunleiHostEnv {
-  /** 获取当前迅雷版本，示例：25.1.44.5464 */
+  /**
+   * 获取当前迅雷版本，示例：25.1.44.5464。
+   * @since 迅雷客户端 >= 25.1.44
+   */
   version(): Promise<string>
   /**
    * 宿主默认下载目录，绝对路径。
@@ -821,6 +890,7 @@ export interface XunleiHostEnv {
   defaultDownloadDir(): Promise<string>
 }
 
+/** 宿主目录选择器的打开选项。 */
 export interface UiPickDirectoryOptions {
   /** 对话框初始定位的目录，绝对路径；未指定时定位到宿主默认下载目录。 */
   defaultPath?: string
@@ -832,12 +902,16 @@ export interface UiPickDirectoryResult {
   path: string
 }
 
+/** 宿主任务列表的跳转选项。 */
 export interface UiOpenTaskListOptions {
   /** 跳转后高亮选中的任务标识；任务不存在或不可见时仅跳转，不高亮。 */
   taskId?: string
 }
 
-/** 下载任务中的音视频播放参数。 */
+/**
+ * 下载任务中的音视频播放参数。
+ * @since 迅雷客户端 >= 25.1.44
+ */
 export interface TaskPlayOptions {
   /** 播放来源：下载任务。 */
   source: 'task'
@@ -847,7 +921,10 @@ export interface TaskPlayOptions {
   fileIndex?: number
 }
 
-/** 音视频资源链接的播放参数。 */
+/**
+ * 音视频资源链接的播放参数。
+ * @since 迅雷客户端 >= 25.1.44
+ */
 export interface UrlPlayOptions {
   /** 播放来源：资源链接。 */
   source: 'url'
@@ -859,11 +936,15 @@ export interface UrlPlayOptions {
   addToLinkHistory?: boolean
 }
 
-/** 宿主内嵌播放器接口，仅微应用页面可用，事件脚本不注入。 */
+/**
+ * 宿主内嵌播放器接口，仅微应用页面可用，事件脚本不注入。
+ * @since 迅雷客户端 >= 25.1.44
+ */
 export interface XunleiHostPlayer {
   /**
    * 使用迅雷内嵌播放器播放任务文件或音视频资源链接。
    * 播放记录和续播位置由播放器自动维护。
+   * @since 迅雷客户端 >= 25.1.44
    */
   play(opts: TaskPlayOptions | UrlPlayOptions): Promise<void>
 }
@@ -885,7 +966,10 @@ export interface XunleiHost {
   env: XunleiHostEnv
   /** 宿主 UI 操作，仅页面可用。 */
   ui: XunleiHostUi
-  /** 宿主内嵌播放器，仅页面可用。 */
+  /**
+   * 宿主内嵌播放器，仅页面可用。
+   * @since 迅雷客户端 >= 25.1.44
+   */
   player: XunleiHostPlayer
 }
 

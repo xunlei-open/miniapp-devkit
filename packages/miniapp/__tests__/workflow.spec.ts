@@ -67,6 +67,17 @@ test('builds with nested Vite config and validates the output', async () => {
   expect(await readFile(join(result.outDir, 'manifest.json'), 'utf8')).toContain('test-miniapp')
 })
 
+test('preserves entry file associations through the production build', async () => {
+  const root = await createProject()
+  const manifestPath = join(root, 'manifest.json')
+  const manifest = JSON.parse(await readFile(manifestPath, 'utf8'))
+  manifest.entry.file_associations = ['.JPG', '.tar.gz']
+  await writeFile(manifestPath, JSON.stringify(manifest))
+  const result = await buildMiniapp({ root })
+  const builtManifest = JSON.parse(await readFile(join(result.outDir, 'manifest.json'), 'utf8'))
+  expect(builtManifest.entry).toEqual(manifest.entry)
+})
+
 test('builds and packages files at the ZIP root', async () => {
   const root = await createProject()
   const result = await packageMiniapp({ root })
