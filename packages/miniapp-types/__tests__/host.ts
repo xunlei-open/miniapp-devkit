@@ -65,17 +65,25 @@ export function checkInvalidPlaybackOptions(player: XunleiHostPlayer) {
   player.play({ source: 'url', url: 'https://example.com/video.mp4', addToLinkHistory: 'true' })
 }
 
-/** 检查打开目录接口的必填路径和返回类型。 */
+/** 检查打开目录的必填路径、可选文件定位和返回类型。 */
 export function checkOpenDirectoryOptions(ui: XunleiHostUi) {
   const result: Promise<void> = ui.openDirectory({ path: 'D:\\Downloads' })
   const globalResult: Promise<void> = xunlei.host.ui.openDirectory({ path: 'D:\\Downloads' })
+  const selectedResult: Promise<void> = ui.openDirectory({
+    path: 'D:\\Downloads',
+    selectFilePath: 'D:\\Downloads\\example.zip',
+  })
   // @ts-expect-error 打开目录的参数必填。
   ui.openDirectory()
   // @ts-expect-error 必须提供 path。
   ui.openDirectory({})
   // @ts-expect-error 路径必须是字符串。
   ui.openDirectory({ path: 1 })
-  return { result, globalResult }
+  // @ts-expect-error 选中文件仍必须提供目录。
+  ui.openDirectory({ selectFilePath: 'D:\\Downloads\\example.zip' })
+  // @ts-expect-error 选中文件路径必须是字符串。
+  ui.openDirectory({ path: 'D:\\Downloads', selectFilePath: true })
+  return { result, globalResult, selectedResult }
 }
 
 /** 检查打开任务文件的必填任务标识、文件下标和返回类型。 */
