@@ -22,6 +22,7 @@ description: 使用 miniapp-devkit 创建、开发、调试和打包迅雷微应
 - 查询字段与签名：[完整类型参考](references/api-types.ts)。清单从 `MiniappManifest`、平台 API 从 `Xunlei`、事件从 `XunleiEvents` 及对应 Context 定位。
 - 生成或调整应用图标：[微应用图标生成指南](references/icon.md)。
 - 制作商城封面与宣传图：[商城上架图片生成指南](references/marketplace-images.md)。
+- 为视频播放器、图片工具等声明文件关联，处理冷启动和再次唤起的打开参数：[文件关联与打开参数](references/platform.md#文件关联与打开参数)。
 
 只读取任务涉及的参考。类型参考随 Skill 分发，无需先安装依赖；已有工程以其依赖版本为准。类型未说明的运行行为查客户端开发文档或在目标客户端验证。
 

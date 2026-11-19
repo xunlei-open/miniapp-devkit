@@ -44,6 +44,11 @@ Vue / React 项目安装并声明对应框架模块；Vanilla 无需模块。额
 
 事件源码默认放在 `src/events`，并在 manifest 的 `scripts` 中声明。纯事件应用无需页面入口。事件或图标更新后，宿主若有缓存需重新加载应用。
 
+页面应用可用 `entry.file_associations` 声明关联的文件后缀，例如
+`"entry": { "url": "index.html", "file_associations": [".jpg", ".png", ".tar.gz"] }`。
+后缀必须带点，不接受空白、路径分隔符或 `*`、`?` 通配符；匹配忽略大小写。
+开发服务及构建、校验和打包命令会校验此字段。`in_app_webview` 不支持非空关联列表。
+
 ### 事件依赖与开发重建
 
 事件入口输出在 `events/`；公共分块、Worker、WASM 等依赖可以按 Vite 默认规则输出到 `assets/`，无需在应用中强制配置 `events/assets/`。Worker 及其依赖修改也会触发事件重建。

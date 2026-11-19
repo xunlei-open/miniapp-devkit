@@ -57,6 +57,7 @@ async function collectFiles(directory: string, current = directory): Promise<str
   return files
 }
 
+/** 读取清单并校验必填元信息及入口文件关联，保留原始声明供构建使用。 */
 export async function readMiniappManifest(manifestPath: string): Promise<MiniappManifest> {
   let value: unknown
   try {
@@ -74,7 +75,27 @@ export async function readMiniappManifest(manifestPath: string): Promise<Miniapp
   assertNonEmptyString(manifest.name, 'name')
   assertNonEmptyString(manifest.title, 'title')
   assertNonEmptyString(manifest.version, 'version')
+  assertFileAssociations(manifest.entry)
   return manifest
+}
+
+/** 在开发和打包阶段拒绝非法文件关联，归一化交由宿主运行时完成。 */
+function assertFileAssociations(entry: MiniappManifest['entry']): void {
+  const associations = entry?.file_associations
+  if (associations === undefined) return
+  if (
+    !Array.isArray(associations) ||
+    associations.some(
+      (extension) => typeof extension !== 'string' || !/^\.[^.\s/\\*?]+(?:\.[^.\s/\\*?]+)*$/u.test(extension),
+    )
+  ) {
+    throw new Error(
+      'manifest.entry.file_associations must contain dot-prefixed file extensions, such as .jpg or .tar.gz',
+    )
+  }
+  if (associations.length > 0 && (entry?.type ?? 'miniapp') !== 'miniapp') {
+    throw new Error('manifest.entry.file_associations is only supported by miniapp entries')
+  }
 }
 
 export async function validateSourceManifest(manifestPath: string): Promise<MiniappManifest> {

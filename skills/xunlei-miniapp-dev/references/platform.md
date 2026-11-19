@@ -179,3 +179,43 @@ async function readPageTitle(url: string) {
 ```
 
 execute 函数在目标页面执行，不依赖外部闭包，所需参数显式传入。目标页面没有 xunlei，Cookie 与微应用页面隔离。waitForSelector 超时返回 false，waitForFunction 超时返回 null，必须检查结果；用完主动关闭。
+
+## 文件关联与打开参数
+
+例如，制作一个视频播放器，希望用户能在迅雷任务文件的“打开方式”中选择它来打开 `.mp4` 视频，可以在 `manifest.json` 中声明关联后缀：
+
+```json
+{
+  "entry": {
+    "url": "index.html",
+    "file_associations": [".mp4"]
+  }
+}
+```
+
+后缀必须带前导点，支持复合后缀，不接受空白、路径分隔符或 `*`、`?` 通配符。运行时转为小写并去重。未声明或空列表表示不参与文件“打开方式”候选匹配，仍可普通打开。非空列表仅支持 `miniapp` 页面入口，`in_app_webview` 不支持。
+
+用户首次用该播放器打开视频时，页面通过 `getArgs()` 获取任务文件参数并加载视频；播放器已经打开时，再选择另一个 `.mp4` 文件，通过 `onNewArgs` 接收新参数并切换视频。同样，图片查看器可以关联 `.jpg`、`.png`，压缩包工具可以关联 `.zip`、`.tar.gz`；只声明应用实际支持处理的格式。
+
+以微应用页面是否已创建区分打开参数的处理方式，两种场景都需要接入：
+
+- **冷启动**：宿主创建页面，页面初始化时调用 `await xunlei.runtime.getArgs()` 获取初始参数。普通打开返回 `{}`；从任务文件打开时返回 `{ from: 'task', taskId, fileIndex }`。
+- **再次唤起**：宿主向已有页面交付新的打开参数，通过 `await xunlei.runtime.onNewArgs(handler)` 订阅。此接口不回放初始参数，后续参数也不会覆盖 `getArgs()` 的结果。普通无参唤起或仅切回页面不会触发通知，不能用作通用的页面显示或恢复事件。
+
+```ts
+import type { MiniappArgs } from '@xunlei-open/miniapp-types'
+
+async function handleArgs(args: MiniappArgs) {
+  if (args.from === 'task') {
+    // 用 args.taskId 和 args.fileIndex 定位任务文件，交给应用的文件处理逻辑。
+  }
+}
+
+// 冷启动：处理当前页面的初始参数。
+await handleArgs(await xunlei.runtime.getArgs())
+// 再次唤起：处理已有页面后续收到的打开参数。
+const unsubscribe = await xunlei.runtime.onNewArgs(handleArgs)
+// 页面业务不再接收参数时调用 unsubscribe()。
+```
+
+`taskId` 在任务组内指向对应子任务；`fileIndex` 是该任务 `meta.res.files` 数组中从 0 开始的下标。文件关联和打开参数不会授予文件内容访问权限；读取文件仍需声明 `tasks.file.access` 并调用 `xunlei.tasks.file.access({ taskId, fileIndex })` 获取只读临时 URL。宿主不等待 `onNewArgs` 回调中的异步业务完成，应用按需管理处理中状态和错误反馈。

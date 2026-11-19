@@ -64,6 +64,8 @@ export default defineConfig({
 
 `entry.type` 默认为 `miniapp`，包内页面入口省略该字段；仅内嵌远程网页入口显式声明 `in_app_webview`。
 
+让页面参与文件“打开方式”候选匹配时，使用 `entry.file_associations` 声明文件后缀，并同时处理冷启动和再次唤起的打开参数，见 [文件关联与打开参数](platform.md#文件关联与打开参数)。
+
 窗口与页面布局见 [响应式布局](responsive-ui.md)；下载生命周期扩展见 [事件脚本](events.md)。
 
 ## 应用内路由
