@@ -885,7 +885,7 @@ export interface XunleiRuntimeBlob {
 
 /**
  * 宿主从下载任务打开微应用时传入的参数，用于冷启动和已有页面的再次唤起。
- * @since 迅雷客户端 >= 25.1.60
+ * @since 迅雷客户端 >= 25.1.70
  */
 export interface MiniappOpenArgs {
   from: 'task'
@@ -897,7 +897,7 @@ export interface MiniappOpenArgs {
 
 /**
  * 微应用页面冷启动时的初始打开参数；普通打开时为空对象。
- * @since 迅雷客户端 >= 25.1.60
+ * @since 迅雷客户端 >= 25.1.70
  */
 export type MiniappArgs = MiniappOpenArgs | Record<string, never>
 
@@ -906,14 +906,14 @@ export interface XunleiRuntime {
   /**
    * 读取微应用页面冷启动时的初始打开参数；普通打开和事件脚本返回 {}。
    * 已有页面再次唤起时，新参数通过 onNewArgs 交付，不会覆盖此方法返回的初始参数。
-   * @since 迅雷客户端 >= 25.1.60
+   * @since 迅雷客户端 >= 25.1.70
    */
   getArgs(): Promise<MiniappArgs>
   /**
    * 接收已有微应用页面再次唤起时的新打开参数，不回放冷启动时的初始参数。
    * 仅在宿主再次带参打开页面时通知；普通无参唤起或仅切回页面不会触发，不能用作通用的页面显示或恢复事件。
    * 返回取消订阅函数；宿主不等待回调中的异步业务完成。
-   * @since 迅雷客户端 >= 25.1.60
+   * @since 迅雷客户端 >= 25.1.70
    */
   onNewArgs(handler: (args: MiniappOpenArgs) => void | Promise<void>): Promise<() => void>
   blob: XunleiRuntimeBlob
