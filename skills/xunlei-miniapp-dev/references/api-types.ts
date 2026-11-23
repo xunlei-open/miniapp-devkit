@@ -74,7 +74,7 @@ export interface MiniappEntryManifest {
   url: string
   /**
    * 关联到此入口的文件后缀，如 .jpg、.tar.gz；忽略大小写，默认 []。非空列表仅支持 miniapp 入口。
-   * @since 迅雷客户端 >= 25.1.60
+   * @since 迅雷客户端 >= 25.1.70
    */
   file_associations?: string[]
 }
@@ -875,7 +875,7 @@ export interface XunleiRuntimeBlob {
 
 /**
  * 宿主从下载任务打开微应用时传入的参数，用于冷启动和已有页面的再次唤起。
- * @since 迅雷客户端 >= 25.1.60
+ * @since 迅雷客户端 >= 25.1.70
  */
 export interface MiniappOpenArgs {
   from: 'task'
@@ -887,7 +887,7 @@ export interface MiniappOpenArgs {
 
 /**
  * 微应用页面冷启动时的初始打开参数；普通打开时为空对象。
- * @since 迅雷客户端 >= 25.1.60
+ * @since 迅雷客户端 >= 25.1.70
  */
 export type MiniappArgs = MiniappOpenArgs | Record<string, never>
 
@@ -896,14 +896,14 @@ export interface XunleiRuntime {
   /**
    * 读取微应用页面冷启动时的初始打开参数；普通打开和事件脚本返回 {}。
    * 已有页面再次唤起时，新参数通过 onNewArgs 交付，不会覆盖此方法返回的初始参数。
-   * @since 迅雷客户端 >= 25.1.60
+   * @since 迅雷客户端 >= 25.1.70
    */
   getArgs(): Promise<MiniappArgs>
   /**
    * 接收已有微应用页面再次唤起时的新打开参数，不回放冷启动时的初始参数。
    * 仅在宿主再次带参打开页面时通知；普通无参唤起或仅切回页面不会触发，不能用作通用的页面显示或恢复事件。
    * 返回取消订阅函数；宿主不等待回调中的异步业务完成。
-   * @since 迅雷客户端 >= 25.1.60
+   * @since 迅雷客户端 >= 25.1.70
    */
   onNewArgs(handler: (args: MiniappOpenArgs) => void | Promise<void>): Promise<() => void>
   blob: XunleiRuntimeBlob
@@ -990,7 +990,7 @@ export interface XunleiHostUi {
   /** 打开宿主目录选择器；用户取消时返回 null，不视为错误。 */
   pickDirectory(opts?: UiPickDirectoryOptions): Promise<UiPickDirectoryResult | null>
   /**
-   * 在系统文件管理器中打开已存在的目录，可选中该目录的直属文件；路径须为非空绝对路径。
+   * 在系统文件管理器中打开已存在的目录，可按文件名选中直属文件；path 须为非空绝对路径。
    * 选中文件不存在时仅打开目录；其他校验或目录打开失败时 reject。
    * 选中文件时完成仅表示已调用系统定位，不保证界面已选中。
    * @since 迅雷客户端 >= 25.1.60
@@ -998,10 +998,11 @@ export interface XunleiHostUi {
   openDirectory(opts: {
     path: string
     /**
-     * 需要选中的普通文件，必须直接位于 path 目录中；文件不存在时仅打开目录。
+     * path 目录下需要选中的普通文件的名称，保留原始名称及扩展名。
+     * 须为非空文件名，不能是 . 或 ..，不能包含 /、\、: 或 NUL 字符。
      * @since 迅雷客户端 >= 25.1.60
      */
-    selectFilePath?: string
+    selectFileName?: string
   }): Promise<void>
   /**
    * 用系统默认程序打开指定的已完成任务文件；系统接受请求后完成，文件不可用或打开失败时 reject。

@@ -71,7 +71,7 @@ export function checkOpenDirectoryOptions(ui: XunleiHostUi) {
   const globalResult: Promise<void> = xunlei.host.ui.openDirectory({ path: 'D:\\Downloads' })
   const selectedResult: Promise<void> = ui.openDirectory({
     path: 'D:\\Downloads',
-    selectFilePath: 'D:\\Downloads\\example.zip',
+    selectFileName: 'example.zip',
   })
   // @ts-expect-error 打开目录的参数必填。
   ui.openDirectory()
@@ -80,9 +80,9 @@ export function checkOpenDirectoryOptions(ui: XunleiHostUi) {
   // @ts-expect-error 路径必须是字符串。
   ui.openDirectory({ path: 1 })
   // @ts-expect-error 选中文件仍必须提供目录。
-  ui.openDirectory({ selectFilePath: 'D:\\Downloads\\example.zip' })
-  // @ts-expect-error 选中文件路径必须是字符串。
-  ui.openDirectory({ path: 'D:\\Downloads', selectFilePath: true })
+  ui.openDirectory({ selectFileName: 'example.zip' })
+  // @ts-expect-error 选中文件名必须是字符串。
+  ui.openDirectory({ path: 'D:\\Downloads', selectFileName: true })
   return { result, globalResult, selectedResult }
 }
 

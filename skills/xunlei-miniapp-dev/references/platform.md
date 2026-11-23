@@ -102,7 +102,7 @@ await xunlei.host.ui.openTaskList({ taskId: task.id })
 
 `pickDirectory` 用户取消时返回 `null`，不抛错，不要用 try/catch 区分取消；错误处理只留给真错误。`openTaskList` 的 `taskId` 不存在或列表中不可见时仅跳转、不高亮，不报错。
 
-`host.ui.openDirectory({ path, selectFilePath? })` 在系统文件管理器中打开已存在的目录，返回 `Promise<void>`，仅页面可用。两个路径均须为非空绝对文件系统路径，不能包含 NUL 字符，也不接受 URL。省略 `selectFilePath` 时仅打开目录，系统打开失败时 reject；提供时，选中指定的普通文件，文件必须直接位于 `path` 目录中。选中文件不存在时仅打开目录，不选中任何文件；目录不存在、目录或文件不可访问、类型不符或文件不属于指定目录时 reject。
+`host.ui.openDirectory({ path, selectFileName? })` 在系统文件管理器中打开已存在的目录，返回 `Promise<void>`，仅页面可用。`path` 须为非空绝对文件系统路径，不能包含 NUL 字符，也不接受 URL。省略 `selectFileName` 时仅打开目录，系统打开失败时 reject；提供时，按名称选中 `path` 目录下的普通文件。文件名保留原始名称及扩展名，须为非空字符串，不能是 `.` 或 `..`，不能包含 `/`、`\`、`:` 或 NUL 字符，不接受完整路径或子目录路径。选中文件不存在时仅打开目录，不选中任何文件；目录不存在、目录或文件不可访问或类型不符时 reject。
 
 选中文件时，Promise 完成仅表示已完成校验并调用系统定位，不保证文件管理器已打开并选中。文件选中能力要求运行时与宿主同步更新，仅升级类型包不能使旧宿主支持新参数。打开任务目录应使用任务详情提供的实际保存路径，不能用当前默认下载目录替代。
 
@@ -115,7 +115,7 @@ if (selected) {
 // 打开目录并选中指定文件。
 await xunlei.host.ui.openDirectory({
   path: 'D:\\Downloads',
-  selectFilePath: 'D:\\Downloads\\example.zip',
+  selectFileName: 'example.zip',
 })
 ```
 
