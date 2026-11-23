@@ -84,7 +84,7 @@ export interface MiniappEntryManifest {
   url: string
   /**
    * 关联到此入口的文件后缀，如 .jpg、.tar.gz；忽略大小写，默认 []。非空列表仅支持 miniapp 入口。
-   * @since 迅雷客户端 >= 25.1.60
+   * @since 迅雷客户端 >= 25.1.70
    */
   file_associations?: string[]
 }
