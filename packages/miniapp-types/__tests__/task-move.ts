@@ -1,8 +1,8 @@
 import type { MiniappPermission, Task, TaskDetailResult, TaskMoveInput, XunleiTasks } from '../src/index'
 
-/** 移动使用独立权限和目标父目录，返回值须区分任务与任务组。 */
+/** 移动共用修改任务权限，返回值须区分任务与任务组。 */
 export async function checkTaskMove(tasks: XunleiTasks, id: string) {
-  const permission: MiniappPermission = 'tasks.move'
+  const permission: MiniappPermission = 'tasks.update'
   const input: TaskMoveInput = { id, path: 'E:\\下载归档' }
   const detail: TaskDetailResult = await tasks.move(input)
   const children: Task[] = detail.type === 'group' ? detail.children : []

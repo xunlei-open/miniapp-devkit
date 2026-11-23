@@ -41,16 +41,6 @@ export type MiniappPermission =
   | 'tasks.detail'
   | 'tasks.file.access'
   | 'tasks.update'
-  /**
-   * 允许更名已完成任务及对应的磁盘文件或根目录。
-   * @since 迅雷客户端 >= 25.1.60
-   */
-  | 'tasks.rename'
-  /**
-   * 允许移动已完成的独立任务或整个任务组。
-   * @since 迅雷客户端 >= 25.1.60
-   */
-  | 'tasks.move'
   | 'tasks.delete'
   | 'blob'
   /**
@@ -563,12 +553,12 @@ export interface XunleiTasks {
   /** 更新任务标签；当前仅支持 req.labels。 */
   update(input: TaskUpdateInput): Promise<Task>
   /**
-   * 更名已完成任务并返回最新详情，需 tasks.rename 权限；BT 多文件任务仅修改根目录名。
+   * 更名已完成任务并返回最新详情，需 tasks.update 权限；BT 多文件任务仅修改根目录名。
    * @since 迅雷客户端 >= 25.1.60
    */
   rename(input: TaskRenameInput): Promise<TaskDetailResult>
   /**
-   * 移动已完成任务并返回最新详情，需 tasks.move 权限；任务组整体移动。
+   * 移动已完成任务并返回最新详情，需 tasks.update 权限；任务组整体移动。
    * @since 迅雷客户端 >= 25.1.60
    */
   move(input: TaskMoveInput): Promise<TaskDetailResult>
@@ -997,13 +987,14 @@ export interface XunleiHostUi {
   pickDirectory(opts?: UiPickDirectoryOptions): Promise<UiPickDirectoryResult | null>
   /**
    * 在系统文件管理器中打开已存在的目录，可选中该目录的直属文件；路径须为非空绝对路径。
-   * 校验或目录打开失败时 reject；选中文件时完成仅表示已调用系统定位，不保证界面已选中。
+   * 选中文件不存在时仅打开目录；其他校验或目录打开失败时 reject。
+   * 选中文件时完成仅表示已调用系统定位，不保证界面已选中。
    * @since 迅雷客户端 >= 25.1.60
    */
   openDirectory(opts: {
     path: string
     /**
-     * 需要选中的已存在普通文件，必须直接位于 path 目录中。
+     * 需要选中的普通文件，必须直接位于 path 目录中；文件不存在时仅打开目录。
      * @since 迅雷客户端 >= 25.1.60
      */
     selectFilePath?: string

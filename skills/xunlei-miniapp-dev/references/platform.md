@@ -34,8 +34,8 @@ async function createDownload(url: string) {
 | `tasks.list({ offset?, limit?, status?, sort? })` | `tasks.list`        | 返回 `{ ids, total }`，不是任务数组                              |
 | `tasks.detail({ id })`                            | `tasks.detail`      | 返回 `Task \| TaskGroup`                                         |
 | `tasks.update({ id, req: { labels } })`           | `tasks.update`      | 当前只支持更新标签                                               |
-| `tasks.rename({ id, name })`                      | `tasks.rename`      | 更名已完成任务及磁盘文件或根目录，返回最新详情                   |
-| `tasks.move({ id, path })`                        | `tasks.move`        | 移动已完成的独立任务或整个任务组，返回最新详情                   |
+| `tasks.rename({ id, name })`                      | `tasks.update`      | 更名已完成任务及磁盘文件或根目录，返回最新详情                   |
+| `tasks.move({ id, path })`                        | `tasks.update`      | 移动已完成的独立任务或整个任务组，返回最新详情                   |
 | `tasks.delete({ id, deleteFiles? })`              | `tasks.delete`      | deleteFiles 默认 false                                           |
 | `tasks.file.access({ taskId, fileIndex })`        | `tasks.file.access` | 返回只读临时 URL                                                 |
 | `runtime.blob.*`                                  | `blob`              | 用于下载时还需 tasks.create                                      |
@@ -53,8 +53,8 @@ async function createDownload(url: string) {
 ### 任务操作
 
 - `tasks.update` 仅支持更新 `req.labels`。
-- `tasks.rename` 仅用于已完成任务，同时修改对应磁盘文件或根目录。`id` 可为普通任务、任务组或组内子任务；`name` 是单个文件名或目录名，不接受路径，保留合法空格。BT 多文件任务仅修改根目录名，不支持传 `fileIndex` 更名子文件。需单独声明 `tasks.rename` 权限。
-- `tasks.move` 仅用于已完成的独立任务或整个任务组，不接受组内子任务或 BT 子文件索引。`path` 是非空绝对路径的目标父目录，任务名称保持不变；不要套用创建任务时的相对路径规则。需单独声明 `tasks.move` 权限。页面可通过 `host.ui.pickDirectory()` 获取目标目录，取消时不发起移动。
+- `tasks.rename` 仅用于已完成任务，同时修改对应磁盘文件或根目录。`id` 可为普通任务、任务组或组内子任务；`name` 是单个文件名或目录名，不接受路径，保留合法空格。BT 多文件任务仅修改根目录名，不支持传 `fileIndex` 更名子文件。与任务标签修改共用 `tasks.update` 权限。
+- `tasks.move` 仅用于已完成的独立任务或整个任务组，不接受组内子任务或 BT 子文件索引。`path` 是非空绝对路径的目标父目录，任务名称保持不变；不要套用创建任务时的相对路径规则。与任务标签修改共用 `tasks.update` 权限。页面可通过 `host.ui.pickDirectory()` 获取目标目录，取消时不发起移动。
 - 按 `detail.type` 区分任务：单任务读取 `meta`、`protocol`，任务组读取 `children`。
 - `tasks.rename` 和 `tasks.move` 均返回 `TaskDetailResult`（`Task | TaskGroup`），同样按 `type` 收窄，并使用返回的最新详情更新页面中的名称、路径和子任务。
 - 页面维护分页参数 `offset` / `limit`。
@@ -102,7 +102,7 @@ await xunlei.host.ui.openTaskList({ taskId: task.id })
 
 `pickDirectory` 用户取消时返回 `null`，不抛错，不要用 try/catch 区分取消；错误处理只留给真错误。`openTaskList` 的 `taskId` 不存在或列表中不可见时仅跳转、不高亮，不报错。
 
-`host.ui.openDirectory({ path, selectFilePath? })` 在系统文件管理器中打开已存在的目录，返回 `Promise<void>`，仅页面可用。两个路径均须为非空绝对文件系统路径，不能包含 NUL 字符，也不接受 URL。省略 `selectFilePath` 时仅打开目录，系统打开失败时 reject；提供时，选中指定的已存在普通文件，文件必须直接位于 `path` 目录中。目录或文件不存在、不可访问、类型不符或文件不属于指定目录时 reject，不降级为仅打开目录。
+`host.ui.openDirectory({ path, selectFilePath? })` 在系统文件管理器中打开已存在的目录，返回 `Promise<void>`，仅页面可用。两个路径均须为非空绝对文件系统路径，不能包含 NUL 字符，也不接受 URL。省略 `selectFilePath` 时仅打开目录，系统打开失败时 reject；提供时，选中指定的普通文件，文件必须直接位于 `path` 目录中。选中文件不存在时仅打开目录，不选中任何文件；目录不存在、目录或文件不可访问、类型不符或文件不属于指定目录时 reject。
 
 选中文件时，Promise 完成仅表示已完成校验并调用系统定位，不保证文件管理器已打开并选中。文件选中能力要求运行时与宿主同步更新，仅升级类型包不能使旧宿主支持新参数。打开任务目录应使用任务详情提供的实际保存路径，不能用当前默认下载目录替代。
 

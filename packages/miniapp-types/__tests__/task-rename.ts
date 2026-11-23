@@ -1,8 +1,8 @@
 import type { MiniappPermission, Task, TaskDetailResult, TaskRenameInput, XunleiTasks } from '../src/index'
 
-/** 更名采用独立权限，任务组结果必须经过类型收窄后访问子任务。 */
+/** 更名共用修改任务权限，任务组结果必须经过类型收窄后访问子任务。 */
 export async function checkTaskRename(tasks: XunleiTasks, id: string) {
-  const permission: MiniappPermission = 'tasks.rename'
+  const permission: MiniappPermission = 'tasks.update'
   const input: TaskRenameInput = { id, name: '第一课.mp4' }
   const detail: TaskDetailResult = await tasks.rename(input)
   const children: Task[] = detail.type === 'group' ? detail.children : []
